@@ -32,7 +32,6 @@ public abstract class Message {
             case Resolve.HEADER: return new Resolve(json);
             case ResolveResponse.HEADER: return new ResolveResponse(json);
             case ConsumerRequest.HEADER: return new ConsumerRequest(json);
-            case ConsumerResponse.HEADER: return new ConsumerResponse(json);
             case InfoMessage.HEADER: return new InfoMessage(json);
         }
         return null;
@@ -75,14 +74,6 @@ public abstract class Message {
     }
 
     public ConsumerRequest asConsumerRequest() {
-        return null;
-    }
-
-    public boolean isConsumerResponse() {
-        return false;
-    }
-
-    public ConsumerResponse asConsumerResponse() {
         return null;
     }
 
