@@ -2,22 +2,24 @@ package ru.ifmo.ctddev.computer.networks;
 
 import ru.ifmo.ctddev.computer.networks.messages.Find;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.util.Set;
-
 /**
  * @author Maxim Slyusarenko
  * @since 25.02.17
  */
-public class Consumer extends  Node {
-
-    private Set<String> producers;
+public class Consumer extends Node {
 
     Consumer(String name) {
         super(name);
+    }
+
+    @Override
+    protected void getConsumerResult() {
+        throw new UnsupportedOperationException("Producer operation for Consumer");
+    }
+
+    @Override
+    protected void getFile() {
+
     }
 
     private void initSend() {
@@ -28,9 +30,7 @@ public class Consumer extends  Node {
     }
 
     private void initReceive() {
-        new Thread(() -> {
-
-        }).start();
+        new Thread(this::receive).start();
     }
 
     public static void main(String[] args) {

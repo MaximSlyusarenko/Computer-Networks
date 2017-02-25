@@ -10,6 +10,16 @@ public class Producer extends Node {
         super(name);
     }
 
+    @Override
+    protected void getConsumerResult() {
+
+    }
+
+    @Override
+    protected void getFile() {
+        throw new UnsupportedOperationException("Consumer operation for Producer");
+    }
+
     public static void main(String[] args) {
 
     }
