@@ -24,7 +24,7 @@ public class Consumer extends Node {
 
     private void initSend() {
         new Thread(() -> {
-            Find find = new Find("consumer", "printer");
+            Find find = new Find(Node.TYPE_CONSUMER, name);
             send(find, MULTICAST_ADDRESS, RECEIVE_PORT);
         }).start();
     }
