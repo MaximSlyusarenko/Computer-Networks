@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.UnknownHostException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -24,9 +25,17 @@ public abstract class Node {
     private final Set<String> consumers = new ConcurrentSkipListSet<>();
 
     public String name;
+    InetAddress selfIP;
+
 
     Node(String name) {
         this.name = name;
+        try {
+            selfIP = InetAddress.getLocalHost();
+        } catch (UnknownHostException e) {
+            System.out.println("can't get selfIP");
+            e.printStackTrace();
+        }
     }
 
     void send(Message message, String address, int port) {

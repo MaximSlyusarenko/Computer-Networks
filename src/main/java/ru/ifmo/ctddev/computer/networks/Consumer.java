@@ -24,13 +24,15 @@ public class Consumer extends Node {
 
     private void initSend() {
         new Thread(() -> {
-            Find find = new Find(Node.TYPE_CONSUMER, name);
+            Find find = new Find(Node.TYPE_CONSUMER, name, selfIP);
             send(find, MULTICAST_ADDRESS, RECEIVE_PORT);
         }).start();
     }
 
     private void initReceive() {
-        new Thread(this::receive).start();
+        new Thread(() -> {
+            receive();
+        }).start();
     }
 
     public static void main(String[] args) {

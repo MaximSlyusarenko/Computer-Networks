@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.net.InetAddress;
+
 /**
  * Created by vi34 on 25/02/2017.
  */
@@ -15,6 +17,7 @@ public class Find extends Message {
     public static final String HEADER = "FIND";
     private String type;
     private String name;
+    private InetAddress ip;
 
     public Find(String json) {
         _decode(json);
