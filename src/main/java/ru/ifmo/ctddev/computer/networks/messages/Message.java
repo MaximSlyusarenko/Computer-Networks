@@ -28,6 +28,8 @@ public abstract class Message {
     private static Message build(String header, String json) {
         switch (header) {
             case Find.HEADER: return new Find(json);
+            case Acknowledgement.HEADER: return new Acknowledgement(json);
+            case Resolve.HEADER: return new Resolve(json);
         }
         return null;
     }

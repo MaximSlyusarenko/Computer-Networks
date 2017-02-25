@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.net.InetAddress;
+
 /**
  * @author Maxim Slyusarenko
  * @since 25.02.17
@@ -12,13 +14,13 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class Acknowledgement extends Message {
-    public static final String HEADER = "ACK";
+public class ResolveResponse extends Message {
+    public static final String HEADER = "ResolveResponse";
 
     private String name;
-    private String type;
+    private InetAddress ip;
 
-    public Acknowledgement(String json) {
+    public ResolveResponse(String json) {
         _decode(json);
     }
 
@@ -31,18 +33,7 @@ public class Acknowledgement extends Message {
 
     @Override
     public void _decode(String s) {
-        Acknowledgement ack = gson.fromJson(s, Acknowledgement.class);
-        this.type = ack.type;
-        this.name = ack.name;
-    }
-
-    @Override
-    public boolean isAcknowledgement() {
-        return true;
-    }
-
-    @Override
-    public Acknowledgement asAcknowledgement() {
-        return this;
+        ResolveResponse resolveResponse = gson.fromJson(s, ResolveResponse.class);
+        this.name = resolveResponse.name;
     }
 }
