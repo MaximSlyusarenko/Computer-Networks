@@ -30,6 +30,10 @@ public abstract class Message {
             case Find.HEADER: return new Find(json);
             case Acknowledgement.HEADER: return new Acknowledgement(json);
             case Resolve.HEADER: return new Resolve(json);
+            case ResolveResponse.HEADER: return new ResolveResponse(json);
+            case ConsumerRequest.HEADER: return new ConsumerRequest(json);
+            case ConsumerResponse.HEADER: return new ConsumerResponse(json);
+            case InfoMessage.HEADER: return new InfoMessage(json);
         }
         return null;
     }
@@ -70,7 +74,23 @@ public abstract class Message {
         return false;
     }
 
+    public ConsumerRequest asConsumerRequest() {
+        return null;
+    }
+
     public boolean isConsumerResponse() {
         return false;
+    }
+
+    public ConsumerResponse asConsumerResponse() {
+        return null;
+    }
+
+    public boolean isInfoMessage() {
+        return false;
+    }
+
+    public InfoMessage asInfoMessage() {
+        return null;
     }
 }

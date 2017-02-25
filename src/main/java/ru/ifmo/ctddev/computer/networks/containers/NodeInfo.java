@@ -1,10 +1,10 @@
 package ru.ifmo.ctddev.computer.networks.containers;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.net.InetAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Maxim Slyusarenko
@@ -14,18 +14,18 @@ import java.net.InetAddress;
 @Setter
 public class NodeInfo {
     private InetAddress inetAddress;
+
     /**
-     * Need expiration time and time to live to update expiration time using ttl in some responses
+     * Expiration time in millis
      */
     private long expirationTime;
-    /**
-     * Time to live in seconds
-     */
-    private int ttl;
 
-    public NodeInfo(InetAddress inetAddress, int ttl) {
+    public NodeInfo() {
+        expirationTime = -1;
+    }
+
+    public NodeInfo(InetAddress inetAddress, long ttl, TimeUnit timeUnit) {
         this.inetAddress = inetAddress;
-        this.ttl = ttl;
-        this.expirationTime = System.currentTimeMillis() + this.ttl * 1000;
+        this.expirationTime = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(ttl, timeUnit);
     }
 }

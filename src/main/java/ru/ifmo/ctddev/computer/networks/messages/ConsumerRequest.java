@@ -8,19 +8,21 @@ import lombok.Setter;
 import java.net.InetAddress;
 
 /**
- * @author Maxim Slyusarenko
+ * @author Alexey Katsman
  * @since 25.02.17
  */
+
 @Getter
 @Setter
 @AllArgsConstructor
-public class ResolveResponse extends Message {
-    public static final String HEADER = "ResolveResponse";
+public class ConsumerRequest extends Message {
+    public static final String HEADER = "ConsumerRequest";
 
     private String name;
+    private String fileName;
     private InetAddress ip;
 
-    public ResolveResponse(String json) {
+    public ConsumerRequest(String json) {
         _decode(json);
     }
 
@@ -33,18 +35,19 @@ public class ResolveResponse extends Message {
 
     @Override
     public void _decode(String s) {
-        ResolveResponse resolveResponse = gson.fromJson(s, ResolveResponse.class);
-        this.name = resolveResponse.name;
-        this.ip = resolveResponse.ip;
+        ConsumerRequest consumerRequest = gson.fromJson(s, ConsumerRequest.class);
+        this.name = consumerRequest.name;
+        this.fileName = consumerRequest.fileName;
+        this.ip = consumerRequest.ip;
     }
 
     @Override
-    public boolean isResolveResponse() {
+    public boolean isConsumerRequest() {
         return true;
     }
 
     @Override
-    public ResolveResponse asResolveResponse() {
+    public ConsumerRequest asConsumerRequest() {
         return this;
     }
 }

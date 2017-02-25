@@ -1,21 +1,28 @@
 package ru.ifmo.ctddev.computer.networks.messages;
 
 import com.google.gson.JsonObject;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.net.InetAddress;
+
 /**
- * @author Maxim Slyusarenko
+ * @author Alexey Katsman
  * @since 25.02.17
  */
+
 @Getter
 @Setter
-public class Resolve extends Message {
-    public static final String HEADER = "Resolve";
+@AllArgsConstructor
+public class InfoMessage extends Message {
+    public static final String HEADER = "InfoMessage";
 
     private String name;
+    private String message;
+    private InetAddress ip;
 
-    public Resolve(String json) {
+    public InfoMessage(String json) {
         _decode(json);
     }
 
@@ -28,17 +35,19 @@ public class Resolve extends Message {
 
     @Override
     public void _decode(String s) {
-        Resolve resolve = gson.fromJson(s, Resolve.class);
-        this.name = resolve.name;
+        InfoMessage infoMessage = gson.fromJson(s, InfoMessage.class);
+        this.name = infoMessage.name;
+        this.message = infoMessage.message;
+        this.ip = infoMessage.ip;
     }
 
     @Override
-    public boolean isResolve() {
+    public boolean isInfoMessage() {
         return true;
     }
 
     @Override
-    public Resolve asResolve() {
+    public InfoMessage asInfoMessage() {
         return this;
     }
 }
