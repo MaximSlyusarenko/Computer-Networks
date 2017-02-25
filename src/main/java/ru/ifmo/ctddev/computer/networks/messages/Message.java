@@ -47,4 +47,12 @@ public abstract class Message {
     public Acknowledgement asAcknowledgement() {
         return null;
     }
+
+    public boolean isConsumerRequest() {
+        return false;
+    }
+
+    public boolean isConsumerResponse() {
+        return false;
+    }
 }
