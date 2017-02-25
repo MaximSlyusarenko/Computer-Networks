@@ -67,9 +67,9 @@ public abstract class Node {
                 if (message.isAcknowledgement()) {
                     Acknowledgement ack = message.asAcknowledgement();
                     addToSomeSet(ack.getType(), ack.getName());
-                } /*else if (message instanceof ConsumerRequest) {
+                } /*else if (message.isConsumerRequest()) {
                     getFile();
-                } else if (message instanceof ConsumerResponse) {
+                } else if (message.isConsumerResponse()) {
                     getConsumerResult();
                 } */ // TODO
             }
