@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Locale;
-import java.util.Scanner;
 
 /**
  * @author Maxim Slyusarenko
