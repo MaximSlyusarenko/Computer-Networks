@@ -46,17 +46,10 @@ public abstract class Node {
             socket.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
             while (true) {
                 StringBuilder messageString = new StringBuilder();
-                while (true) {
-                    byte[] receiveData = new byte[BUFFER_SIZE];
-                    DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-                    socket.receive(receivePacket);
-                    if (receivePacket.getLength() == BUFFER_SIZE) {
-                        messageString.append(new String(receiveData));
-                    } else {
-                        messageString.append(new String(receiveData).substring(0, receivePacket.getLength()));
-                        break;
-                    }
-                }
+                byte[] receiveData = new byte[BUFFER_SIZE];
+                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                socket.receive(receivePacket);
+                messageString.append(new String(receiveData).substring(0, receivePacket.getLength()));
                 String packet = messageString.toString();
                 System.out.println("Got packet: " + packet);
                 Message message = Message.decode(packet);
