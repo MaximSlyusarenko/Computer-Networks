@@ -6,6 +6,7 @@ import ru.ifmo.ctddev.computer.networks.messages.Message;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -63,8 +64,8 @@ public abstract class Node {
         try (DatagramSocket socket = new DatagramSocket(RECEIVE_UNICAST_PORT)) {
             while (true) {
                 Message message = receiveMessage(socket);
-                if (message instanceof Acknowledgement) {
-                    Acknowledgement ack = (Acknowledgement) message;
+                if (message.isAcknowledgement()) {
+                    Acknowledgement ack = message.asAcknowledgement();
                     addToSomeSet(ack.getType(), ack.getName());
                 } /*else if (message instanceof ConsumerRequest) {
                     getFile();
@@ -82,13 +83,13 @@ public abstract class Node {
             socket.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
             while (true) {
                 Message message = receiveMessage(socket);
-                if (message instanceof Find) {
-                    Find find = (Find) message;
-                    if (find.getName().equals(name)) {
+                if (message.isFind()) {
+                    Find find = message.asFind();
+                    if (Objects.equals(find.getName(), name)) {
                         continue;
                     }
                     addToSomeSet(find.getType(), find.getName());
-                    System.out.println("got Find request from " + ((Find) message).getName());
+                    System.out.println("got Find request from " + find.getName());
                     send(new Acknowledgement(name, getType()), find.getIp().getHostName(), RECEIVE_UNICAST_PORT);
                 }
             }

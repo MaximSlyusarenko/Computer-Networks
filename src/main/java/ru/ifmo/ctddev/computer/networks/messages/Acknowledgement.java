@@ -31,4 +31,14 @@ public class Acknowledgement extends Message {
         this.type = ack.type;
         this.name = ack.name;
     }
+
+    @Override
+    public boolean isAcknowledgement() {
+        return true;
+    }
+
+    @Override
+    public Acknowledgement asAcknowledgement() {
+        return this;
+    }
 }

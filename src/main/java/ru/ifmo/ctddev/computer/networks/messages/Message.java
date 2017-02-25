@@ -31,4 +31,20 @@ public abstract class Message {
         }
         return null;
     }
+
+    public boolean isFind() {
+        return false;
+    }
+
+    public Find asFind() {
+        return null;
+    }
+
+    public boolean isAcknowledgement() {
+        return false;
+    }
+
+    public Acknowledgement asAcknowledgement() {
+        return null;
+    }
 }

@@ -37,4 +37,14 @@ public class Find extends Message {
         this.name = find.name;
         this.ip = find.ip;
     }
+
+    @Override
+    public boolean isFind() {
+        return true;
+    }
+
+    @Override
+    public Find asFind() {
+        return this;
+    }
 }
