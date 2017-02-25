@@ -22,6 +22,11 @@ public class Consumer extends Node {
 
     }
 
+    @Override
+    protected String getType() {
+        return Node.TYPE_CONSUMER;
+    }
+
     private void initSend() {
         new Thread(() -> {
             Find find = new Find(Node.TYPE_CONSUMER, name, selfIP);
@@ -30,9 +35,8 @@ public class Consumer extends Node {
     }
 
     private void initReceive() {
-        new Thread(() -> {
-            receive();
-        }).start();
+        new Thread(this::receiveMulticast).start();
+        new Thread(this::receiveUnicast).start();
     }
 
     public static void main(String[] args) {

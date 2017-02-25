@@ -1,13 +1,11 @@
 package ru.ifmo.ctddev.computer.networks;
 
+import ru.ifmo.ctddev.computer.networks.messages.Acknowledgement;
 import ru.ifmo.ctddev.computer.networks.messages.Find;
 import ru.ifmo.ctddev.computer.networks.messages.Message;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -49,37 +47,62 @@ public abstract class Node {
 
     protected abstract void getConsumerResult();
     protected abstract void getFile();
+    protected abstract String getType();
 
-    void receive() {
+    private Message receiveMessage(DatagramSocket socket) throws IOException {
+        byte[] receiveData = new byte[BUFFER_SIZE];
+        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        socket.receive(receivePacket);
+        String packet = new String(receiveData).substring(0, receivePacket.getLength());
+        System.out.println("Got packet: " + packet);
+        return Message.decode(packet);
+    }
+
+    void receiveUnicast() {
+        try (DatagramSocket socket = new DatagramSocket(RECEIVE_PORT)) {
+            while (true) {
+                Message message = receiveMessage(socket);
+                if (message instanceof Acknowledgement) {
+                    Acknowledgement ack = (Acknowledgement) message;
+                    addToSomeSet(ack.getType(), ack.getName());
+                } /*else if (message instanceof ConsumerRequest) {
+                    getFile();
+                } else if (message instanceof ConsumerResponse) {
+                    getConsumerResult();
+                } */ // TODO
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void receiveMulticast() {
         try (MulticastSocket socket = new MulticastSocket(RECEIVE_PORT)) {
             socket.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
             while (true) {
-                StringBuilder messageString = new StringBuilder();
-                byte[] receiveData = new byte[BUFFER_SIZE];
-                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-                socket.receive(receivePacket);
-                messageString.append(new String(receiveData).substring(0, receivePacket.getLength()));
-                String packet = messageString.toString();
-                System.out.println("Got packet: " + packet);
-                Message message = Message.decode(packet);
+                Message message = receiveMessage(socket);
                 if (message instanceof Find) {
                     Find find = (Find) message;
-                    if (TYPE_PRODUCER.equals(find.getType())) {
-                        producers.add(find.getName());
-                    } else if (TYPE_CONSUMER.equals(find.getType())) {
-                        consumers.add(find.getName());
-                    } else {
-                        throw new IllegalArgumentException("Incorrect type: type must be " + TYPE_PRODUCER + " or " + TYPE_CONSUMER);
-                    } /*else if (message instanceof ConsumerRequest) {
-                        getFile();
-                    } else if (message instanceof ConsumerResponse) {
-                        getConsumerResult();
-                    }*/ // TODO
+                    if (find.getName().equals(name)) {
+                        continue;
+                    }
+                    addToSomeSet(find.getType(), find.getName());
                     System.out.println("got Find request from " + ((Find) message).getName());
+                    send(new Acknowledgement(name, getType()), find.getIp().getHostName(), RECEIVE_PORT);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void addToSomeSet(String type, String name) {
+        if (TYPE_PRODUCER.equals(type)) {
+            producers.add(name);
+        } else if (TYPE_CONSUMER.equals(type)) {
+            consumers.add(name);
+        } else {
+            throw new IllegalArgumentException("Incorrect type: type must be " + TYPE_PRODUCER + " or " + TYPE_CONSUMER);
         }
     }
 }

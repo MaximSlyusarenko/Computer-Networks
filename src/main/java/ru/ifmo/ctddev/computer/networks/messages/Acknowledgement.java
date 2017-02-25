@@ -5,23 +5,18 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.net.InetAddress;
-
 /**
- * Created by vi34 on 25/02/2017.
+ * @author Maxim Slyusarenko
+ * @since 25.02.17
  */
 @Getter
 @Setter
 @AllArgsConstructor
-public class Find extends Message {
-    public static final String HEADER = "FIND";
-    private String type;
-    private String name;
-    private InetAddress ip;
+public class Acknowledgement extends Message {
+    public static final String HEADER = "ACK";
 
-    public Find(String json) {
-        _decode(json);
-    }
+    private String name;
+    private String type;
 
     @Override
     public String encode() {
@@ -32,8 +27,8 @@ public class Find extends Message {
 
     @Override
     public void _decode(String s) {
-        Find find = gson.fromJson(s, Find.class);
-        this.type = find.type;
-        this.name = find.name;
+        Acknowledgement ack = gson.fromJson(s, Acknowledgement.class);
+        this.type = ack.type;
+        this.name = ack.name;
     }
 }
