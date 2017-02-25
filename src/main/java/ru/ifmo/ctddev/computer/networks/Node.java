@@ -76,7 +76,9 @@ public abstract class Node {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            uSocket.close();
+            if (uSocket != null) {
+                uSocket.close();
+            }
         }
     }
 
@@ -111,7 +113,9 @@ public abstract class Node {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            socket.close();
+            if (socket != null) {
+                socket.close();
+            }
         }
     }
 
