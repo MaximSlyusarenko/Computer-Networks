@@ -35,5 +35,6 @@ public class Find extends Message {
         Find find = gson.fromJson(s, Find.class);
         this.type = find.type;
         this.name = find.name;
+        this.ip = find.ip;
     }
 }
