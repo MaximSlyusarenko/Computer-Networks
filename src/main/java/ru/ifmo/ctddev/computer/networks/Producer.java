@@ -18,7 +18,7 @@ public class Producer extends Node {
     }
 
     @Override
-    protected void getFile() {
+    protected void getFile(String name) {
         throw new UnsupportedOperationException("Consumer operation for Producer");
     }
 

@@ -25,7 +25,8 @@ public abstract class Node {
 
     public String name;
     InetAddress selfIP;
-
+    MulticastSocket socket;
+    DatagramSocket uSocket;
 
     Node(String name) {
         this.name = name;
@@ -47,8 +48,8 @@ public abstract class Node {
     }
 
     protected abstract void getConsumerResult();
-    protected abstract void getFile();
     protected abstract String getType();
+    protected abstract void getFile(String name);
 
     private Message receiveMessage(DatagramSocket socket) throws IOException {
         byte[] receiveData = new byte[BUFFER_SIZE];
@@ -60,7 +61,8 @@ public abstract class Node {
     }
 
     void receiveUnicast() {
-        try (DatagramSocket socket = new DatagramSocket(RECEIVE_UNICAST_PORT)) {
+        try {
+            uSocket = new DatagramSocket(RECEIVE_UNICAST_PORT);
             while (true) {
                 Message message = receiveMessage(socket);
                 if (message instanceof Acknowledgement) {
@@ -74,11 +76,14 @@ public abstract class Node {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            uSocket.close();
         }
     }
 
     void receiveMulticast() {
-        try (MulticastSocket socket = new MulticastSocket(RECEIVE_MULTICAST_PORT)) {
+        try {
+            socket = new MulticastSocket(RECEIVE_MULTICAST_PORT);
             socket.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
             while (true) {
                 Message message = receiveMessage(socket);
@@ -94,7 +99,15 @@ public abstract class Node {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            socket.close();
         }
+    }
+
+
+    void close() {
+        socket.close();
+        uSocket.close();
     }
 
     private void addToSomeSet(String type, String name) {
