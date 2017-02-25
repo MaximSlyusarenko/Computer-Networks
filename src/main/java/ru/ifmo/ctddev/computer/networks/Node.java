@@ -1,13 +1,11 @@
 package ru.ifmo.ctddev.computer.networks;
 
-import ru.ifmo.ctddev.computer.networks.messages.Acknowledgement;
-import ru.ifmo.ctddev.computer.networks.messages.Find;
-import ru.ifmo.ctddev.computer.networks.messages.Message;
+import ru.ifmo.ctddev.computer.networks.messages.*;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by vi34 on 25/02/2017.
@@ -20,8 +18,8 @@ public abstract class Node {
     static final String TYPE_CONSUMER = "consumer";
     static final String TYPE_PRODUCER = "producer";
 
-    private final Set<String> producers = new ConcurrentSkipListSet<>();
-    private final Set<String> consumers = new ConcurrentSkipListSet<>();
+    private final Map<String, InetAddress> producers = new ConcurrentHashMap<>();
+    private final Map<String, InetAddress> consumers = new ConcurrentHashMap<>();
 
     public String name;
     InetAddress selfIP;
@@ -67,7 +65,7 @@ public abstract class Node {
                 Message message = receiveMessage(socket);
                 if (message instanceof Acknowledgement) {
                     Acknowledgement ack = (Acknowledgement) message;
-                    addToSomeSet(ack.getType(), ack.getName());
+                    addToSomeMap(ack.getType(), ack.getName());
                 } /*else if (message instanceof ConsumerRequest) {
                     getFile();
                 } else if (message instanceof ConsumerResponse) {
@@ -92,9 +90,21 @@ public abstract class Node {
                     if (find.getName().equals(name)) {
                         continue;
                     }
-                    addToSomeSet(find.getType(), find.getName());
+                    addToSomeMap(find.getType(), find.getName());
                     System.out.println("got Find request from " + ((Find) message).getName());
                     send(new Acknowledgement(name, getType()), find.getIp().getHostName(), RECEIVE_UNICAST_PORT);
+                } else if (message instanceof Resolve) {
+                    Resolve resolve = (Resolve) message;
+                    if (resolve.getName().equals(name)) {
+                        continue;
+                    }
+                    send(new ResolveResponse(name, selfIP), MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
+                } else if (message instanceof ResolveResponse) {
+                    ResolveResponse resolveResponse = (ResolveResponse) message;
+                    if (resolveResponse.getName().equals(name)) {
+                        continue;
+                    }
+                    addToSomeMap(resolveResponse.getName(), resolveResponse.getIp());
                 }
             }
         } catch (IOException e) {
@@ -110,11 +120,16 @@ public abstract class Node {
         uSocket.close();
     }
 
-    private void addToSomeSet(String type, String name) {
+    private void addToSomeMap(String name, InetAddress ip) {
+        producers.computeIfPresent(name, ($, $$) -> ip);
+        consumers.computeIfPresent(name, ($, $$) -> ip);
+    }
+
+    private void addToSomeMap(String type, String name) {
         if (TYPE_PRODUCER.equals(type)) {
-            producers.add(name);
+            producers.put(name, null);
         } else if (TYPE_CONSUMER.equals(type)) {
-            consumers.add(name);
+            consumers.put(name, null);
         } else {
             throw new IllegalArgumentException("Incorrect type: type must be " + TYPE_PRODUCER + " or " + TYPE_CONSUMER);
         }
