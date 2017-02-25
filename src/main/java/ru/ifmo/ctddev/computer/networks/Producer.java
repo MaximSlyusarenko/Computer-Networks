@@ -30,7 +30,7 @@ public class Producer extends Node {
     private void initSend() {
         new Thread(() -> {
             Find find = new Find(Node.TYPE_PRODUCER, name, selfIP);
-            send(find, MULTICAST_ADDRESS, RECEIVE_PORT);
+            send(find, MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
         }).start();
     }
 

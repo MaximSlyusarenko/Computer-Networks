@@ -14,7 +14,8 @@ import java.util.concurrent.ConcurrentSkipListSet;
  */
 public abstract class Node {
     static final String MULTICAST_ADDRESS = "225.4.5.6";
-    static final int RECEIVE_PORT = 8080;
+    static final int RECEIVE_MULTICAST_PORT = 8080;
+    static final int RECEIVE_UNICAST_PORT = 8081;
     static final int BUFFER_SIZE = 2048;
     static final String TYPE_CONSUMER = "consumer";
     static final String TYPE_PRODUCER = "producer";
@@ -59,7 +60,7 @@ public abstract class Node {
     }
 
     void receiveUnicast() {
-        try (DatagramSocket socket = new DatagramSocket(RECEIVE_PORT)) {
+        try (DatagramSocket socket = new DatagramSocket(RECEIVE_UNICAST_PORT)) {
             while (true) {
                 Message message = receiveMessage(socket);
                 if (message instanceof Acknowledgement) {
@@ -77,7 +78,7 @@ public abstract class Node {
     }
 
     void receiveMulticast() {
-        try (MulticastSocket socket = new MulticastSocket(RECEIVE_PORT)) {
+        try (MulticastSocket socket = new MulticastSocket(RECEIVE_MULTICAST_PORT)) {
             socket.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
             while (true) {
                 Message message = receiveMessage(socket);
@@ -88,7 +89,7 @@ public abstract class Node {
                     }
                     addToSomeSet(find.getType(), find.getName());
                     System.out.println("got Find request from " + ((Find) message).getName());
-                    send(new Acknowledgement(name, getType()), find.getIp().getHostName(), RECEIVE_PORT);
+                    send(new Acknowledgement(name, getType()), find.getIp().getHostName(), RECEIVE_UNICAST_PORT);
                 }
             }
         } catch (IOException e) {
