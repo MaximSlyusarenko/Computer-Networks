@@ -4,11 +4,17 @@ import ru.ifmo.ctddev.computer.networks.containers.NodeInfo;
 import ru.ifmo.ctddev.computer.networks.messages.Acknowledgement;
 import ru.ifmo.ctddev.computer.networks.messages.Find;
 import ru.ifmo.ctddev.computer.networks.messages.Message;
+import ru.ifmo.ctddev.computer.networks.messages.Resolve;
+import ru.ifmo.ctddev.computer.networks.messages.ResolveResponse;
 
 import java.io.IOException;
-import java.net.*;
-import java.util.Objects;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
+import java.net.UnknownHostException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -50,7 +56,9 @@ public abstract class Node {
     }
 
     protected abstract void getConsumerResult();
+
     protected abstract String getType();
+
     protected abstract void getFile(String name);
 
     private Message receiveMessage(DatagramSocket socket) throws IOException {
@@ -117,7 +125,6 @@ public abstract class Node {
             socket.close();
         }
     }
-
 
     void close() {
         socket.close();
