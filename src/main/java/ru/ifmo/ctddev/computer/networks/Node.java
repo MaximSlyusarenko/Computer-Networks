@@ -105,15 +105,15 @@ public abstract class Node {
                     addToSomeMap(find.getType(), find.getName());
                     System.out.println("Got Find request from " + find.getName());
                     send(new Acknowledgement(name, getType()), find.getIp().getHostName(), RECEIVE_UNICAST_PORT);
-                } else if (message instanceof Resolve) {
-                    Resolve resolve = (Resolve) message;
-                    if (resolve.getName().equals(name)) {
+                } else if (message.isResolve()) {
+                    Resolve resolve = message.asResolve();
+                    if (Objects.equals(resolve.getName(), name)) {
                         continue;
                     }
                     send(new ResolveResponse(name, selfIP), MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
-                } else if (message instanceof ResolveResponse) {
-                    ResolveResponse resolveResponse = (ResolveResponse) message;
-                    if (resolveResponse.getName().equals(name)) {
+                } else if (message.isResolveResponse()) {
+                    ResolveResponse resolveResponse = message.asResolveResponse();
+                    if (Objects.equals(resolveResponse.getName(), name)) {
                         continue;
                     }
                     addToSomeMap(resolveResponse.getName(), resolveResponse.getIp());

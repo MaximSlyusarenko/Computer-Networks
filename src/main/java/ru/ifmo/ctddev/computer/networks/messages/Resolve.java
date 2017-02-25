@@ -32,4 +32,14 @@ public class Resolve extends Message {
         Resolve resolve = gson.fromJson(s, Resolve.class);
         this.name = resolve.name;
     }
+
+    @Override
+    public boolean isResolve() {
+        return true;
+    }
+
+    @Override
+    public Resolve asResolve() {
+        return this;
+    }
 }

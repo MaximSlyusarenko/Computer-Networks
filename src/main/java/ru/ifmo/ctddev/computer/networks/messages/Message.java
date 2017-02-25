@@ -50,6 +50,22 @@ public abstract class Message {
         return null;
     }
 
+    public boolean isResolve() {
+        return false;
+    }
+
+    public Resolve asResolve() {
+        return null;
+    }
+
+    public boolean isResolveResponse() {
+        return false;
+    }
+
+    public ResolveResponse asResolveResponse() {
+        return null;
+    }
+
     public boolean isConsumerRequest() {
         return false;
     }
