@@ -1,5 +1,6 @@
 package ru.ifmo.ctddev.computer.networks;
 
+import ru.ifmo.ctddev.computer.networks.containers.NodeInfo;
 import ru.ifmo.ctddev.computer.networks.messages.*;
 
 import java.io.IOException;
@@ -18,8 +19,8 @@ public abstract class Node {
     static final String TYPE_CONSUMER = "consumer";
     static final String TYPE_PRODUCER = "producer";
 
-    private final Map<String, InetAddress> producers = new ConcurrentHashMap<>();
-    private final Map<String, InetAddress> consumers = new ConcurrentHashMap<>();
+    private final Map<String, NodeInfo> producers = new ConcurrentHashMap<>();
+    private final Map<String, NodeInfo> consumers = new ConcurrentHashMap<>();
 
     public String name;
     InetAddress selfIP;
@@ -121,15 +122,15 @@ public abstract class Node {
     }
 
     private void addToSomeMap(String name, InetAddress ip) {
-        producers.computeIfPresent(name, ($, $$) -> ip);
-        consumers.computeIfPresent(name, ($, $$) -> ip);
+        producers.computeIfPresent(name, ($, $$) -> new NodeInfo(ip, 0)); // TODO: add normal ttl
+        consumers.computeIfPresent(name, ($, $$) -> new NodeInfo(ip, 0));
     }
 
     private void addToSomeMap(String type, String name) {
         if (TYPE_PRODUCER.equals(type)) {
-            producers.put(name, null);
+            producers.put(name, new NodeInfo(null, -1));
         } else if (TYPE_CONSUMER.equals(type)) {
-            consumers.put(name, null);
+            consumers.put(name, new NodeInfo(null, -1));
         } else {
             throw new IllegalArgumentException("Incorrect type: type must be " + TYPE_PRODUCER + " or " + TYPE_CONSUMER);
         }
