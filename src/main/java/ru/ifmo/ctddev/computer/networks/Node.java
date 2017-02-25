@@ -62,7 +62,7 @@ public abstract class Node {
         try {
             uSocket = new DatagramSocket(RECEIVE_UNICAST_PORT);
             while (true) {
-                Message message = receiveMessage(socket);
+                Message message = receiveMessage(uSocket);
                 if (message instanceof Acknowledgement) {
                     Acknowledgement ack = (Acknowledgement) message;
                     addToSomeMap(ack.getType(), ack.getName());
