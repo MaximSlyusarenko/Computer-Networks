@@ -1,5 +1,6 @@
 package ru.ifmo.ctddev.computer.networks;
 
+import ru.ifmo.ctddev.computer.networks.io.FastScanner;
 import ru.ifmo.ctddev.computer.networks.messages.ConsumerRequest;
 import ru.ifmo.ctddev.computer.networks.messages.Find;
 
@@ -10,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Locale;
 import java.util.Scanner;
 
 /**
@@ -86,6 +88,8 @@ public class Consumer extends Node {
                             outputStream.write(buffer, 0, bytesReadNow);
                         }
                     } while (bytesReadNow > -1);
+
+                    System.out.printf(Locale.ENGLISH, "Received file \"%s\"\n> ", fileName);
                 } finally {
                     if (fileSocket != null) {
                         fileSocket.close();
@@ -130,10 +134,10 @@ public class Consumer extends Node {
         consumer.initSend();
         consumer.initReceive();
 
-        Scanner scanner = new Scanner(System.in);
+        FastScanner scanner = new FastScanner();
         while (true) {
             System.out.print("> ");
-            switch (scanner.next()) {
+            switch (scanner.next().toLowerCase()) {
                 case "get":
                     String name = scanner.next();
                     consumer.getFile(name);
@@ -147,9 +151,13 @@ public class Consumer extends Node {
                     consumer.close();
                     System.out.println("bye");
                     return;
+                case "help":
+                    System.out.println("Print \"get <file name>\" to get file from producers");
+                    System.out.println("Print \"exit\" or \"q\" to stop this consumer");
+                    break;
 
                 default:
-                    System.out.println("unknown command");
+                    System.out.println("Unknown command");
             }
         }
     }

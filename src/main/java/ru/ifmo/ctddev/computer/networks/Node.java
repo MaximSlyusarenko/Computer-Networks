@@ -75,6 +75,11 @@ public abstract class Node {
         socket.receive(receivePacket);
         String packet = new String(receiveData, Charset.forName("UTF-8")).substring(0, receivePacket.getLength());
         System.out.println("Got packet: " + packet);
+
+        if (TYPE_CONSUMER.equals(getType())) {
+            System.out.print("> ");
+        }
+
         return Message.decode(packet);
     }
 
@@ -86,8 +91,6 @@ public abstract class Node {
                 if (message.isAcknowledgement()) {
                     Acknowledgement ack = message.asAcknowledgement();
                     addToSomeMap(ack.getType(), ack.getName());
-                } else if (message.isConsumerResponse()) {
-                    getConsumerResult();
                 }
             }
         } catch (IOException e) {
@@ -112,6 +115,11 @@ public abstract class Node {
                     }
                     addToSomeMap(find.getType(), find.getName());
                     System.out.println("Got Find request from " + find.getName());
+
+                    if (TYPE_CONSUMER.equals(getType())) {
+                        System.out.print("> ");
+                    }
+
                     send(new Acknowledgement(name, getType()), find.getIp().getHostName(), RECEIVE_UNICAST_PORT);
                 } else if (message.isResolve()) {
                     Resolve resolve = message.asResolve();
