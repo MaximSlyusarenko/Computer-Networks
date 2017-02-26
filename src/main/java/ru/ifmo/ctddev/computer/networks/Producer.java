@@ -70,7 +70,7 @@ public class Producer extends Node {
             byte[] buffer = new byte[BUFFER_SIZE];
             socket.setSendBufferSize(BUFFER_SIZE);
             String generatedFileName = UUID.randomUUID().toString() + " " + fileName;
-            String message = String.format(Locale.ENGLISH, "Receiving file \"%s\" from \"%s\" with address \"%s\"", generatedFileName, name, address);
+            String message = String.format(Locale.ENGLISH, "Receiving file \"%s\" from \"%s\" with address \"%s\"", generatedFileName, name, selfIP);
             socketOutputStream.writeUTF(message);
             socketOutputStream.writeUTF(generatedFileName);
 
