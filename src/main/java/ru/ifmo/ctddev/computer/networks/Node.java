@@ -171,4 +171,8 @@ public abstract class Node {
             throw new IllegalArgumentException("Incorrect type: type must be " + TYPE_PRODUCER + " or " + TYPE_CONSUMER);
         }
     }
+
+    public String info() {
+        return "producers: " + producers.toString() + "\nconsumers:" + consumers.toString() + "\n";
+    }
 }
