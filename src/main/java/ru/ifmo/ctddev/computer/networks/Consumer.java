@@ -129,7 +129,7 @@ public class Consumer extends Node {
     }
 
     public static void main(String[] args) {
-        Consumer consumer = new Consumer("printer");
+        Consumer consumer = new Consumer("Alex");
         consumer.initSend();
         consumer.initReceive();
 

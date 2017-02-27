@@ -10,8 +10,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author Maxim Slyusarenko
@@ -45,15 +50,33 @@ public class Producer extends Node {
         }).start();
     }
 
+    private void initListFiles() {
+        String availableFiles = "";
+
+        try {
+            availableFiles = Files
+                    .list(new File(".").toPath())
+                    .map(Path::toString)
+                    .collect(Collectors.joining(";"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        InfoMessage infoMessage = new InfoMessage(name, availableFiles, selfIP);
+
+        send(infoMessage, MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
+    }
+
     private void initReceive() {
         new Thread(this::receiveMulticast).start();
         new Thread(this::receiveUnicast).start();
     }
 
     public static void main(String[] args) {
-        Producer producer = new Producer("not printer");
+        Producer producer = new Producer("Alex");
         producer.initSend();
         producer.initReceive();
+        new ScheduledThreadPoolExecutor(1).scheduleWithFixedDelay(producer::initListFiles, 0, 10, TimeUnit.SECONDS);
     }
 
     @Override
@@ -82,7 +105,7 @@ public class Producer extends Node {
                     socketOutputStream.write(buffer, 0, bytesReadNow);
                 }
             } while (bytesReadNow > -1);
-            
+
             System.out.printf(Locale.ENGLISH, "File \"%s\" sent", generatedFileName);
         } catch (FileNotFoundException e) {
             String message = String.format(Locale.ENGLISH, "File %s doesn't exist", fileName);
