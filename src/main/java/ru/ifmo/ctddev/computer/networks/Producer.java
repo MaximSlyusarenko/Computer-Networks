@@ -70,6 +70,7 @@ public class Producer extends Node {
             byte[] buffer = new byte[BUFFER_SIZE];
             socket.setSendBufferSize(BUFFER_SIZE);
             String generatedFileName = UUID.randomUUID().toString() + " " + fileName;
+            System.out.printf(Locale.ENGLISH, "Sending file \"%s\" from \"%s\" to \"%s\"", generatedFileName, selfIp, address);
             String message = String.format(Locale.ENGLISH, "Receiving file \"%s\" from \"%s\" with address \"%s\"", generatedFileName, name, selfIP);
             socketOutputStream.writeUTF(message);
             socketOutputStream.writeUTF(generatedFileName);
@@ -81,6 +82,8 @@ public class Producer extends Node {
                     socketOutputStream.write(buffer, 0, bytesReadNow);
                 }
             } while (bytesReadNow > -1);
+            
+            System.out.printf(Locale.ENGLISH, "File \"%s\" sent", generatedFileName);
         } catch (FileNotFoundException e) {
             String message = String.format(Locale.ENGLISH, "File %s doesn't exist", fileName);
             send(new InfoMessage(name, message, selfIP), address, RECEIVE_UNICAST_PORT);
