@@ -129,7 +129,7 @@ public class Consumer extends Node {
     }
 
     public static void main(String[] args) {
-        Consumer consumer = new Consumer("printer");
+        Consumer consumer = new Consumer("Viktor");
         consumer.initSend();
         consumer.initReceive();
 
@@ -140,6 +140,9 @@ public class Consumer extends Node {
                 case "get":
                     String name = scanner.next();
                     consumer.getFile(name);
+                    break;
+                case "i":
+                    System.out.println(consumer.info());
                     break;
                 case "exit": case "q":
                     scanner.close();

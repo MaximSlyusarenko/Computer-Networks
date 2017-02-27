@@ -2,6 +2,7 @@ package ru.ifmo.ctddev.computer.networks.containers;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.net.InetAddress;
 import java.util.concurrent.TimeUnit;
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Getter
 @Setter
+@ToString
 public class NodeInfo {
     private InetAddress inetAddress;
 
