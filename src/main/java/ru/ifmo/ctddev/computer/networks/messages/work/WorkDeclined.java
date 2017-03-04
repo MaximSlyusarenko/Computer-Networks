@@ -13,14 +13,14 @@ import java.net.InetAddress;
  */
 @Getter
 @Setter
+@AllArgsConstructor
 public class WorkDeclined extends Message {
     public static final String HEADER = "WorkDeclined";
     private String name;
     private String workId;
 
-    public WorkDeclined(String name, String workId) {
-        this.name = name;
-        this.workId = workId;
+    public WorkDeclined(String json) {
+        _decode(json);
     }
 
     @Override

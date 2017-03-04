@@ -1,13 +1,22 @@
 package ru.ifmo.ctddev.computer.networks.messages.work;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import ru.ifmo.ctddev.computer.networks.messages.Message;
 
 /**
  * Created by vi34 on 04/03/2017.
  */
+@Getter
+@Setter
 public class Prepare extends Message {
     public static final String HEADER = "PREPARE";
     private String name;
+
+    public Prepare(String json) {
+        _decode(json);
+    }
 
     @Override
     public String getHeader() {

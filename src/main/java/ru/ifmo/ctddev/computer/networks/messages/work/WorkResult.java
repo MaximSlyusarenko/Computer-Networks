@@ -18,6 +18,10 @@ public class WorkResult extends Message {
     private String workId;
     private String result;
 
+    public WorkResult(String json) {
+        _decode(json);
+    }
+
     @Override
     public String getHeader() {
         return HEADER;

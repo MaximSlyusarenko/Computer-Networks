@@ -3,6 +3,7 @@ package ru.ifmo.ctddev.computer.networks.messages;
 import com.google.gson.*;
 import lombok.Getter;
 import lombok.Setter;
+import ru.ifmo.ctddev.computer.networks.messages.work.*;
 
 /**
  * Created by vi34 on 25/02/2017.
@@ -38,6 +39,12 @@ public abstract class Message {
             case ResolveResponse.HEADER: return new ResolveResponse(json);
             case ConsumerRequest.HEADER: return new ConsumerRequest(json);
             case InfoMessage.HEADER: return new InfoMessage(json);
+            case HaveWork.HEADER: return new HaveWork(json);
+            case Prepare.HEADER: return new Prepare(json);
+            case Ready.HEADER: return new Ready(json);
+            case Work.HEADER: return new Work(json);
+            case WorkDeclined.HEADER: return new WorkDeclined(json);
+            case WorkResult.HEADER: return new WorkResult(json);
         }
         return null;
     }

@@ -19,6 +19,10 @@ public class HaveWork extends Message {
     private String workId;
     private InetAddress ip;
 
+    public HaveWork(String json) {
+        _decode(json);
+    }
+
     @Override
     public String getHeader() {
         return HEADER;

@@ -19,6 +19,10 @@ public class Ready extends Message {
     private String workId;
     private InetAddress ip;
 
+    public Ready(String json) {
+        _decode(json);
+    }
+
     @Override
     public String getHeader() {
         return HEADER;

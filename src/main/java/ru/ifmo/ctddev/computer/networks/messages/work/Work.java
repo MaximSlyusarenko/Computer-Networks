@@ -24,6 +24,10 @@ public class Work extends Message {
     private int sleep;
     private String result;
 
+    public Work(String json) {
+        _decode(json);
+    }
+
     @Override
     public String getHeader() {
         return HEADER;
