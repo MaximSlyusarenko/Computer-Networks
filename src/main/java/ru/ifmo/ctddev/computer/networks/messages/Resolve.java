@@ -20,10 +20,8 @@ public class Resolve extends Message {
     }
 
     @Override
-    public String encode() {
-        JsonObject jsonObject = gson.toJsonTree(this).getAsJsonObject();
-        jsonObject.addProperty("header", HEADER);
-        return jsonObject.toString();
+    public String getHeader() {
+        return HEADER;
     }
 
     @Override

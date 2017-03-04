@@ -34,6 +34,11 @@ public class InfoMessage extends Message {
     }
 
     @Override
+    public String getHeader() {
+        return HEADER;
+    }
+
+    @Override
     public void _decode(String s) {
         InfoMessage infoMessage = gson.fromJson(s, InfoMessage.class);
         this.name = infoMessage.name;

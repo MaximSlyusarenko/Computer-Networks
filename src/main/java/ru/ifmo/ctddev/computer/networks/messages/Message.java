@@ -1,9 +1,6 @@
 package ru.ifmo.ctddev.computer.networks.messages;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,9 +10,16 @@ import lombok.Setter;
 @Getter
 @Setter
 public abstract class Message {
-    static Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    protected static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    public abstract String encode();
+
+    public String encode() {
+        JsonObject jsonObject = gson.toJsonTree(this).getAsJsonObject();
+        jsonObject.addProperty("header", getHeader());
+        return jsonObject.toString();
+    }
+
+    public abstract String getHeader();
     public abstract void _decode(String s);
     public abstract String getName();
 
