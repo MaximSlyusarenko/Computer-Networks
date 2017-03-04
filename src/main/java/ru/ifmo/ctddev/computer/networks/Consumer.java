@@ -149,7 +149,7 @@ public class Consumer extends Node {
             String message = String.format(Locale.ENGLISH, "Receiving work \"%s\" from \"%s\" with address \"%s\"", workName, name, selfIP);
             socketOutputStream.writeUTF(message);
             socketOutputStream.writeUTF(workName);
-            socketOutputStream.writeUTF(new Work(name, workName, selfIP, workInfo.getSleepSeconds(), workInfo.getResult()).encode());
+            socketOutputStream.write(new Work(name, workName, selfIP, workInfo.getSleepSeconds(), workInfo.getResult()).encode().getBytes());
 
             System.out.printf(Locale.ENGLISH, "Work \"%s\" sent", workName);
         } catch (IOException e) {

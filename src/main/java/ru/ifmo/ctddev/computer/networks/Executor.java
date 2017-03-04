@@ -91,13 +91,13 @@ public class Executor extends Node {
                         bytesReadNow = socketInputStream.read(buffer, 0, BUFFER_SIZE);
 
                         if (bytesReadNow > 0) {
-                            int length = bytesReadNow; // For lambda))
+                            int length = bytesReadNow; // For lambda
                             workNameToCurrentWork.compute(workName, (key, value) -> {
                                 String currentWork;
                                 if (value == null) {
-                                    currentWork = new String(buffer).substring(1, length);
+                                    currentWork = new String(buffer, 0, length);
                                 } else {
-                                    currentWork = value + new String(buffer).substring(1, length);
+                                    currentWork = value + new String(buffer, 0, length);
                                 }
                                 System.out.println("Current work is " + currentWork);
                                 if (currentWork.endsWith("#")) {

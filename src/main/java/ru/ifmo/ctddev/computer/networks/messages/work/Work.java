@@ -15,7 +15,6 @@ import java.net.InetAddress;
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor
 public class Work extends Message {
     public static final String HEADER = "Work";
     private String name;
