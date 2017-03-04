@@ -31,6 +31,7 @@ public abstract class Node {
     static final int BUFFER_SIZE = 2048;
     static final String TYPE_CONSUMER = "consumer";
     static final String TYPE_PRODUCER = "producer";
+    static final String TYPE_EXECUTOR = "executor";
 
     private final Map<String, NodeInfo> producers = new ConcurrentHashMap<>();
     private final Map<String, NodeInfo> consumers = new ConcurrentHashMap<>();
@@ -59,11 +60,9 @@ public abstract class Node {
         }
     }
 
-    protected abstract void getConsumerResult();
-
     protected abstract String getType();
 
-    protected abstract void getFile(String fileName);
+    protected abstract void processMessage(Message message);
 
     protected void findFileAndSend(String fileName, String address) {
         throw new UnsupportedOperationException("Consumer can't perform file send operation");
@@ -108,40 +107,10 @@ public abstract class Node {
             socket.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
             while (true) {
                 Message message = receiveMessage(socket);
-                if (message.isFind()) {
-                    Find find = message.asFind();
-                    if (Objects.equals(find.getName(), name)) {
-                        continue;
-                    }
-                    addToSomeMap(find.getType(), find.getName());
-                    System.out.println("Got Find request from " + find.getName());
-
-                    if (TYPE_CONSUMER.equals(getType())) {
-                        System.out.print("> ");
-                    }
-
-                    send(new Acknowledgement(name, getType()), find.getIp().getHostName(), RECEIVE_UNICAST_PORT);
-                } else if (message.isResolve()) {
-                    Resolve resolve = message.asResolve();
-                    if (Objects.equals(resolve.getName(), name)) {
-                        continue;
-                    }
-                    send(new ResolveResponse(name, selfIP), MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
-                } else if (message.isResolveResponse()) {
-                    ResolveResponse resolveResponse = message.asResolveResponse();
-                    if (Objects.equals(resolveResponse.getName(), name)) {
-                        continue;
-                    }
-                    addToSomeMap(resolveResponse.getName(), resolveResponse.getIp());
-                } else if (message.isConsumerRequest()) {
-                    ConsumerRequest consumerRequest = message.asConsumerRequest();
-
-                    if (TYPE_CONSUMER.equals(getType()) || Objects.equals(consumerRequest.getName(), name)) {
-                        continue;
-                    }
-
-                    findFileAndSend(consumerRequest.getFileName(), consumerRequest.getIp().getHostAddress());
+                if (Objects.equals(message.getName(), name)) {
+                    continue;
                 }
+                processMessage(message);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -157,12 +126,12 @@ public abstract class Node {
         uSocket.close();
     }
 
-    private void addToSomeMap(String name, InetAddress ip) {
+    protected void addToSomeMap(String name, InetAddress ip) {
         producers.computeIfPresent(name, ($, $$) -> new NodeInfo(ip, 0, TimeUnit.SECONDS)); // TODO: add normal ttl
         consumers.computeIfPresent(name, ($, $$) -> new NodeInfo(ip, 0, TimeUnit.SECONDS)); // TODO: add normal ttl
     }
 
-    private void addToSomeMap(String type, String name) {
+    protected void addToSomeMap(String type, String name) {
         if (TYPE_PRODUCER.equals(type)) {
             producers.put(name, new NodeInfo());
         } else if (TYPE_CONSUMER.equals(type)) {

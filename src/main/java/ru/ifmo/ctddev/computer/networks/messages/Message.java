@@ -17,6 +17,7 @@ public abstract class Message {
 
     public abstract String encode();
     public abstract void _decode(String s);
+    public abstract String getName();
 
     public static Message decode(String json) {
         JsonParser parser = new JsonParser();

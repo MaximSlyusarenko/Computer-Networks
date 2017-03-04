@@ -1,8 +1,7 @@
 package ru.ifmo.ctddev.computer.networks;
 
 import ru.ifmo.ctddev.computer.networks.io.FastScanner;
-import ru.ifmo.ctddev.computer.networks.messages.ConsumerRequest;
-import ru.ifmo.ctddev.computer.networks.messages.Find;
+import ru.ifmo.ctddev.computer.networks.messages.*;
 
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -12,6 +11,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * @author Maxim Slyusarenko
@@ -30,12 +30,6 @@ public class Consumer extends Node {
         super(name);
     }
 
-    @Override
-    protected void getConsumerResult() {
-        throw new UnsupportedOperationException("Producer operation for Consumer");
-    }
-
-    @Override
     protected void getFile(String fileName) {
         send(new ConsumerRequest(this.name, fileName, selfIP), MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
     }
@@ -43,6 +37,22 @@ public class Consumer extends Node {
     @Override
     protected String getType() {
         return Node.TYPE_CONSUMER;
+    }
+
+    @Override
+    protected void processMessage(Message message) {
+        if (message.isFind()) {
+            Find find = message.asFind();
+            addToSomeMap(find.getType(), find.getName());
+            System.out.println("Got Find request from " + find.getName());
+            System.out.print("> ");
+            send(new Acknowledgement(name, getType()), find.getIp().getHostName(), RECEIVE_UNICAST_PORT);
+        } else if (message.isResolve()) {
+            send(new ResolveResponse(name, selfIP), MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
+        } else if (message.isResolveResponse()) {
+            ResolveResponse resolveResponse = message.asResolveResponse();
+            addToSomeMap(resolveResponse.getName(), resolveResponse.getIp());
+        }
     }
 
     private void initSend() {

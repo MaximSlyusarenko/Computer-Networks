@@ -2,12 +2,7 @@ package ru.ifmo.ctddev.computer.networks;
 
 import ru.ifmo.ctddev.computer.networks.messages.*;
 
-import java.io.BufferedInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,19 +13,10 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-/**
- * @author Maxim Slyusarenko
- * @since 25.02.17
- */
-public class Producer extends Node {
+public class Executor extends Node {
 
-    Producer(String name) {
+    Executor(String name) {
         super(name);
-    }
-
-
-    protected void getFile(String fileName) {
-        throw new UnsupportedOperationException("Consumer operation for Producer");
     }
 
     @Override
@@ -45,14 +31,6 @@ public class Producer extends Node {
             addToSomeMap(find.getType(), find.getName());
             System.out.println("Got Find request from " + find.getName());
             send(new Acknowledgement(name, getType()), find.getIp().getHostName(), RECEIVE_UNICAST_PORT);
-        } else if (message.isResolve()) {
-            send(new ResolveResponse(name, selfIP), MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
-        } else if (message.isResolveResponse()) {
-            ResolveResponse resolveResponse = message.asResolveResponse();
-            addToSomeMap(resolveResponse.getName(), resolveResponse.getIp());
-        } else if (message.isConsumerRequest()) {
-            ConsumerRequest consumerRequest = message.asConsumerRequest();
-            findFileAndSend(consumerRequest.getFileName(), consumerRequest.getIp().getHostAddress());
         }
     }
 
@@ -86,7 +64,7 @@ public class Producer extends Node {
     }
 
     public static void main(String[] args) {
-        Producer producer = new Producer("Alex");
+        Executor producer = new Executor("Alex");
         producer.initSend();
         producer.initReceive();
         new ScheduledThreadPoolExecutor(1).scheduleWithFixedDelay(producer::initListFiles, 0, 10, TimeUnit.SECONDS);
