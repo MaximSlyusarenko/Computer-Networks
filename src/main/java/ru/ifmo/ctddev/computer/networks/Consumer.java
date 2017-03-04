@@ -88,6 +88,9 @@ public class Consumer extends Node {
         } else if (message instanceof Ready) {
             Ready ready = (Ready) message;
             executorsForWork.compute(ready.getWorkId(), (key, prevValue) -> {
+                if (prevValue == null) {
+                    prevValue = 0;
+                }
                 if (prevValue == WORK_PARTS) {
                     send(new WorkDeclined(name, ready.getWorkId()), ready.getIp().getHostName(), RECEIVE_UNICAST_PORT);
                     return prevValue;
