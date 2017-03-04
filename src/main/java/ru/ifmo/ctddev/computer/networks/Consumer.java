@@ -85,7 +85,7 @@ public class Consumer extends Node {
         } else if (message.isResolveResponse()) {
             ResolveResponse resolveResponse = message.asResolveResponse();
             addToSomeMap(resolveResponse.getName(), resolveResponse.getIp());
-        } else if (message.getHeader().equals(Ready.HEADER)) {
+        } else if (message instanceof Ready) {
             Ready ready = (Ready) message;
             executorsForWork.compute(ready.getWorkId(), (key, prevValue) -> {
                 if (prevValue == WORK_PARTS) {
@@ -106,7 +106,7 @@ public class Consumer extends Node {
                 }
 
             });
-        } else if (message.getHeader().equals(WorkResult.HEADER)) {
+        } else if (message instanceof WorkResult) {
             WorkResult result = (WorkResult) message;
             worksInProgress.compute(result.getWorkId(), (key, prevValue) -> {
                 prevValue.add(result.getName());
@@ -220,7 +220,7 @@ public class Consumer extends Node {
     }
 
     public static void main(String[] args) {
-        Consumer consumer = new Consumer("Viktor");
+        Consumer consumer = new Consumer("Consumer");
         consumer.initSend();
         consumer.initReceive();
 

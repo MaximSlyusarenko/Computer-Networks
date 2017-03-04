@@ -40,10 +40,10 @@ public class Executor extends Node {
             addToSomeMap(find.getType(), find.getName());
             System.out.println("Got Find request from " + find.getName());
             send(new Acknowledgement(name, getType()), find.getIp().getHostName(), RECEIVE_UNICAST_PORT);
-        } else if (message.getHeader().equals(HaveWork.HEADER)) {
+        } else if (message instanceof HaveWork) {
             HaveWork haveWork = (HaveWork) message;
             worksWeAreReadyFor.remove(haveWork.getWorkId());
-            load.getAndUpdate(operand -> {
+            int prevLoad = load.getAndUpdate(operand -> {
                 if (operand < WORK_THREADS) {
                     send(new Ready(name, haveWork.getWorkId(), selfIP), haveWork.getIp().getHostName(), RECEIVE_UNICAST_PORT);
                     new Timer().schedule(new TimerTask() {
@@ -59,8 +59,10 @@ public class Executor extends Node {
                 }
                 return operand;
             });
-            worksWeAreReadyFor.add(haveWork.getWorkId());
-        } else if (message.getHeader().equals(WorkDeclined.HEADER)) {
+            if (prevLoad < WORK_THREADS) {
+                worksWeAreReadyFor.add(haveWork.getWorkId());
+            }
+        } else if (message instanceof WorkDeclined) {
             WorkDeclined workDeclined = (WorkDeclined) message;
             worksWeAreReadyFor.remove(workDeclined.getWorkId());
             load.decrementAndGet();
@@ -149,7 +151,7 @@ public class Executor extends Node {
     }
 
     public static void main(String[] args) {
-        Executor producer = new Executor("Alex");
+        Executor producer = new Executor("Executor");
         producer.initSend();
         producer.initReceive();
     }
