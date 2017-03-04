@@ -7,6 +7,7 @@ import ru.ifmo.ctddev.computer.networks.messages.Find;
 import ru.ifmo.ctddev.computer.networks.messages.Message;
 import ru.ifmo.ctddev.computer.networks.messages.Resolve;
 import ru.ifmo.ctddev.computer.networks.messages.ResolveResponse;
+import ru.ifmo.ctddev.computer.networks.messages.work.Ready;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -28,6 +29,7 @@ public abstract class Node {
     static final int RECEIVE_MULTICAST_PORT = 8080;
     static final int RECEIVE_UNICAST_PORT = 8081;
     static final int RECEIVE_FILE_PORT = 8082;
+    static final int RECEIVE_WORK_PORT = 8083;
     static final int BUFFER_SIZE = 2048;
     static final String TYPE_CONSUMER = "consumer";
     static final String TYPE_PRODUCER = "producer";
@@ -35,6 +37,7 @@ public abstract class Node {
 
     private final Map<String, NodeInfo> producers = new ConcurrentHashMap<>();
     private final Map<String, NodeInfo> consumers = new ConcurrentHashMap<>();
+    private final Map<String, NodeInfo> executors = new ConcurrentHashMap<>();
 
     public String name;
     InetAddress selfIP;
@@ -90,6 +93,8 @@ public abstract class Node {
                 if (message.isAcknowledgement()) {
                     Acknowledgement ack = message.asAcknowledgement();
                     addToSomeMap(ack.getType(), ack.getName());
+                } else {
+                    processMessage(message);
                 }
             }
         } catch (IOException e) {
@@ -136,6 +141,8 @@ public abstract class Node {
             producers.put(name, new NodeInfo());
         } else if (TYPE_CONSUMER.equals(type)) {
             consumers.put(name, new NodeInfo());
+        } else if (TYPE_EXECUTOR.equals(type)) {
+            executors.put(name, new NodeInfo());
         } else {
             throw new IllegalArgumentException("Incorrect type: type must be " + TYPE_PRODUCER + " or " + TYPE_CONSUMER);
         }

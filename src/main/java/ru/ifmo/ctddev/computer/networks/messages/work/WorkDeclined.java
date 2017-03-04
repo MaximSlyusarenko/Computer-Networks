@@ -8,16 +8,20 @@ import ru.ifmo.ctddev.computer.networks.messages.Message;
 import java.net.InetAddress;
 
 /**
- * Created by vi34 on 04/03/2017.
+ * @author Maxim Slyusarenko
+ * @since 04.03.17
  */
 @Getter
 @Setter
-@AllArgsConstructor
-public class HaveWork extends Message {
-    public static final String HEADER = "HAVE_WORK";
+public class WorkDeclined extends Message {
+    public static final String HEADER = "WorkDeclined";
     private String name;
     private String workId;
-    private InetAddress ip;
+
+    public WorkDeclined(String name, String workId) {
+        this.name = name;
+        this.workId = workId;
+    }
 
     @Override
     public String getHeader() {
@@ -26,10 +30,9 @@ public class HaveWork extends Message {
 
     @Override
     public void _decode(String s) {
-        HaveWork haveWork = gson.fromJson(s, HaveWork.class);
-        this.name = haveWork.name;
-        this.workId = haveWork.workId;
-        this.ip = haveWork.ip;
+        WorkDeclined workDeclined = gson.fromJson(s, WorkDeclined.class);
+        this.name = workDeclined.name;
+        this.workId = workDeclined.workId;
     }
 
     @Override

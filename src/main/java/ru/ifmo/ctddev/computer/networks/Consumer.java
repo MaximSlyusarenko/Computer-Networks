@@ -1,17 +1,17 @@
 package ru.ifmo.ctddev.computer.networks;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import ru.ifmo.ctddev.computer.networks.io.FastScanner;
 import ru.ifmo.ctddev.computer.networks.messages.*;
+import ru.ifmo.ctddev.computer.networks.messages.work.*;
 
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Maxim Slyusarenko
@@ -19,10 +19,23 @@ import java.util.Objects;
  */
 public class Consumer extends Node {
 
+    private static final int WORK_PARTS = 2;
+    private static final int ONE_NODE_EXECUTE_DELAY = 30000;
+    private static final int ALL_NODES_EXECUTE_DELAY = 60000;
+
     private Thread multiReciever;
     private Thread uniReciever;
     private Thread fileReceiver;
     private Thread sender;
+
+    private Map<String, Integer> executorsForWork = new ConcurrentHashMap<>();
+
+    private Map<String, WorkInfo> workNameToWork = new ConcurrentHashMap<>();
+
+    /**
+     * Map from workId to names of executors which have finished this work
+     */
+    private Map<String, List<String>> worksInProgress = new ConcurrentHashMap<>();
 
     private ServerSocket serverSocket;
 
@@ -30,8 +43,28 @@ public class Consumer extends Node {
         super(name);
     }
 
-    protected void getFile(String fileName) {
+    private void getFile(String fileName) {
         send(new ConsumerRequest(this.name, fileName, selfIP), MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
+    }
+
+    private void sendHaveWork(String workId, int sleep, String result) {
+        workNameToWork.put(workId, new WorkInfo(sleep, result));
+        send(new HaveWork(name, workId, selfIP), MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
+        worksInProgress.put(workId, new ArrayList<>());
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (worksInProgress.containsKey(workId)) {
+                    WorkInfo workInfo = workNameToWork.get(workId);
+                    sendHaveWork(workId, workInfo.getSleepSeconds(), workInfo.getResult());
+                }
+            }
+        }, ALL_NODES_EXECUTE_DELAY);
+    }
+
+    private void sendHaveWork(int sleep, String result) {
+        String workId = UUID.randomUUID().toString();
+        sendHaveWork(workId, sleep, result);
     }
 
     @Override
@@ -52,6 +85,37 @@ public class Consumer extends Node {
         } else if (message.isResolveResponse()) {
             ResolveResponse resolveResponse = message.asResolveResponse();
             addToSomeMap(resolveResponse.getName(), resolveResponse.getIp());
+        } else if (message.getHeader().equals(Ready.HEADER)) {
+            Ready ready = (Ready) message;
+            executorsForWork.compute(ready.getWorkId(), (key, prevValue) -> {
+                if (prevValue == WORK_PARTS) {
+                    send(new WorkDeclined(name, ready.getWorkId()), ready.getIp().getHostName(), RECEIVE_UNICAST_PORT);
+                    return prevValue;
+                } else {
+                    sendWork(ready.getIp().getHostName(), ready.getWorkId(), workNameToWork.get(ready.getWorkId()));
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            if (worksInProgress.containsKey(ready.getWorkId()) && !worksInProgress.get(ready.getWorkId()).contains(ready.getName())) {
+                                WorkInfo workInfo = workNameToWork.get(ready.getWorkId());
+                                sendHaveWork(ready.getWorkId(), workInfo.getSleepSeconds(), workInfo.getResult());
+                            }
+                        }
+                    }, ONE_NODE_EXECUTE_DELAY);
+                    return prevValue + 1;
+                }
+
+            });
+        } else if (message.getHeader().equals(WorkResult.HEADER)) {
+            WorkResult result = (WorkResult) message;
+            worksInProgress.compute(result.getWorkId(), (key, prevValue) -> {
+                prevValue.add(result.getName());
+                return prevValue;
+            });
+            if (worksInProgress.get(result.getWorkId()).size() == WORK_PARTS) {
+                worksInProgress.remove(result.getWorkId());
+            }
+            System.out.println("Get work result for work " + result.getWorkId() + " from " + result.getName() + ", result = " + result.getResult());
         }
     }
 
@@ -70,6 +134,23 @@ public class Consumer extends Node {
         multiReciever.start();
         uniReciever.start();
         fileReceiver.start();
+    }
+
+    private void sendWork(String address, String workName, WorkInfo workInfo) {
+        try (Socket socket = new Socket(address, RECEIVE_WORK_PORT);
+             DataOutputStream socketOutputStream = new DataOutputStream(socket.getOutputStream())) {
+
+            socket.setSendBufferSize(BUFFER_SIZE);
+            System.out.printf(Locale.ENGLISH, "Sending work \"%s\" from \"%s\" to \"%s\"", workName, selfIP, address);
+            String message = String.format(Locale.ENGLISH, "Receiving work \"%s\" from \"%s\" with address \"%s\"", workName, name, selfIP);
+            socketOutputStream.writeUTF(message);
+            socketOutputStream.writeUTF(workName);
+            socketOutputStream.writeUTF(new Work(name, workName, selfIP, workInfo.getSleepSeconds(), workInfo.getResult()).encode());
+
+            System.out.printf(Locale.ENGLISH, "Work \"%s\" sent", workName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void receiveFileConnection() {
@@ -151,6 +232,11 @@ public class Consumer extends Node {
                     String name = scanner.next();
                     consumer.getFile(name);
                     break;
+                case "work":
+                    int sleep = Integer.parseInt(scanner.next());
+                    String result = scanner.next();
+                    consumer.sendHaveWork(sleep, result);
+                    break;
                 case "i":
                     System.out.println(consumer.info());
                     break;
@@ -172,5 +258,12 @@ public class Consumer extends Node {
                     System.out.println("Unknown command");
             }
         }
+    }
+
+    @AllArgsConstructor
+    @Getter
+    private class WorkInfo {
+        private int sleepSeconds;
+        private String result;
     }
 }
