@@ -49,6 +49,7 @@ public class Consumer extends Node {
 
     private void sendHaveWork(String workId, int sleep, String result) {
         workNameToWork.put(workId, new WorkInfo(sleep, result));
+        executorsForWork.put(workId, 0);
         send(new HaveWork(name, workId, selfIP), MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
         worksInProgress.put(workId, new ArrayList<>());
         new Timer().schedule(new TimerTask() {

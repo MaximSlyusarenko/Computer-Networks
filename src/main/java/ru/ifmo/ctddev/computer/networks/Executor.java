@@ -43,6 +43,7 @@ public class Executor extends Node {
         } else if (message instanceof HaveWork) {
             HaveWork haveWork = (HaveWork) message;
             worksWeAreReadyFor.remove(haveWork.getWorkId());
+            workNameToCurrentWork.put(haveWork.getWorkId(), "");
             int prevLoad = load.getAndUpdate(operand -> {
                 if (operand < WORK_THREADS) {
                     send(new Ready(name, haveWork.getWorkId(), selfIP), haveWork.getIp().getHostName(), RECEIVE_UNICAST_PORT);
@@ -65,6 +66,7 @@ public class Executor extends Node {
         } else if (message instanceof WorkDeclined) {
             WorkDeclined workDeclined = (WorkDeclined) message;
             worksWeAreReadyFor.remove(workDeclined.getWorkId());
+            workNameToCurrentWork.put(workDeclined.getWorkId(), "");
             load.decrementAndGet();
         }
     }
@@ -89,22 +91,26 @@ public class Executor extends Node {
                         bytesReadNow = socketInputStream.read(buffer, 0, BUFFER_SIZE);
 
                         if (bytesReadNow > 0) {
+                            int length = bytesReadNow; // For lambda))
                             workNameToCurrentWork.compute(workName, (key, value) -> {
                                 String currentWork;
                                 if (value == null) {
-                                    currentWork = new String(buffer);
+                                    currentWork = new String(buffer).substring(1, length);
                                 } else {
-                                    currentWork = value + new String(buffer);
+                                    currentWork = value + new String(buffer).substring(1, length);
                                 }
+                                System.out.println("Current work is " + currentWork);
                                 if (currentWork.endsWith("#")) {
-                                    worksWeAreReadyFor.remove(currentWork.substring(0, currentWork.length() - 1));
                                     executorService.submit(() -> {
-                                        Work work = new Work();
-                                        work._decode(currentWork.substring(0, currentWork.length() - 1));
+                                        worksWeAreReadyFor.remove(currentWork.substring(0, currentWork.length() - 1));
+                                        System.out.println("Before work start " + currentWork.substring(0, currentWork.length() - 1));
+                                        Work work = new Work(currentWork.substring(0, currentWork.length() - 1));
+                                        System.out.println("Work with name " + work.getName() + " started");
                                         try {
                                             Thread.sleep(work.getSleep() * 1000);
                                         } catch (InterruptedException ignored) {
                                         }
+                                        System.out.println("Work with name " + work.getWorkId() + " was successfully executed!");
                                         send(new WorkResult(name, work.getWorkId(), work.getResult()), work.getIp().getHostName(), RECEIVE_UNICAST_PORT);
                                     });
                                 }
