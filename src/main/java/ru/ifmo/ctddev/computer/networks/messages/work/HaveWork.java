@@ -40,4 +40,14 @@ public class HaveWork extends Message {
     public String getName() {
         return name;
     }
+
+    @Override
+    public boolean isHaveWork() {
+        return true;
+    }
+
+    @Override
+    public HaveWork asHaveWork() {
+        return this;
+    }
 }

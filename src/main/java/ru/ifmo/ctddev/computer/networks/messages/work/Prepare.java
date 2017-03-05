@@ -33,4 +33,14 @@ public class Prepare extends Message {
     public String getName() {
         return name;
     }
+
+    @Override
+    public boolean isPrepare() {
+        return true;
+    }
+
+    @Override
+    public Prepare asPrepare() {
+        return this;
+    }
 }

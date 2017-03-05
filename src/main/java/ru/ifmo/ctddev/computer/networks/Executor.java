@@ -38,10 +38,10 @@ public class Executor extends Node {
         if (message.isFind()) {
             Find find = message.asFind();
             addToSomeMap(find.getType(), find.getName());
-            System.out.println("Got Find request from " + find.getName());
+            System.out.printf(Locale.ENGLISH, "Got Find request from %s\n", find.getName());
             send(new Acknowledgement(name, getType()), find.getIp().getHostName(), RECEIVE_UNICAST_PORT);
-        } else if (message instanceof HaveWork) {
-            HaveWork haveWork = (HaveWork) message;
+        } else if (message.isHaveWork()) {
+            HaveWork haveWork = message.asHaveWork();
             worksWeAreReadyFor.remove(haveWork.getWorkId());
             workNameToCurrentWork.put(haveWork.getWorkId(), "");
             int prevLoad = load.getAndUpdate(operand -> {
@@ -63,8 +63,8 @@ public class Executor extends Node {
             if (prevLoad < WORK_THREADS) {
                 worksWeAreReadyFor.add(haveWork.getWorkId());
             }
-        } else if (message instanceof WorkDeclined) {
-            WorkDeclined workDeclined = (WorkDeclined) message;
+        } else if (message.isWorkDeclined()) {
+            WorkDeclined workDeclined = message.asWorkDeclined();
             worksWeAreReadyFor.remove(workDeclined.getWorkId());
             workNameToCurrentWork.put(workDeclined.getWorkId(), "");
             load.decrementAndGet();
@@ -99,18 +99,18 @@ public class Executor extends Node {
                                 } else {
                                     currentWork = value + new String(buffer, 0, length);
                                 }
-                                System.out.println("Current work is " + currentWork);
+                                System.out.printf(Locale.ENGLISH, "Current work is %s\n", currentWork);
                                 if (currentWork.endsWith("#")) {
                                     executorService.submit(() -> {
                                         worksWeAreReadyFor.remove(currentWork.substring(0, currentWork.length() - 1));
-                                        System.out.println("Before work start " + currentWork.substring(0, currentWork.length() - 1));
+                                        System.out.printf(Locale.ENGLISH, "Before %s\n", currentWork.substring(0, currentWork.length() - 1));
                                         Work work = new Work(currentWork.substring(0, currentWork.length() - 1));
-                                        System.out.println("Work with name " + work.getName() + " started");
+                                        System.out.printf(Locale.ENGLISH, "Work \"%s\" started\n", work.getWorkId());
                                         try {
                                             Thread.sleep(work.getSleep() * 1000);
                                         } catch (InterruptedException ignored) {
                                         }
-                                        System.out.println("Work with name " + work.getWorkId() + " was successfully executed!");
+                                        System.out.printf(Locale.ENGLISH, "Work \"%s\" was successfully executed!\n", work.getWorkId());
                                         send(new WorkResult(name, work.getWorkId(), work.getResult()), work.getIp().getHostName(), RECEIVE_UNICAST_PORT);
                                     });
                                 }
@@ -157,9 +157,10 @@ public class Executor extends Node {
     }
 
     public static void main(String[] args) {
-        Executor producer = new Executor("Executor");
-        producer.initSend();
-        producer.initReceive();
+        String name = args.length == 0 ? "Executor" : args[0];
+        Executor executor = new Executor(name);
+        executor.initSend();
+        executor.initReceive();
     }
 
 }

@@ -39,4 +39,14 @@ public class WorkDeclined extends Message {
     public String getName() {
         return name;
     }
+
+    @Override
+    public boolean isWorkDeclined() {
+        return true;
+    }
+
+    @Override
+    public WorkDeclined asWorkDeclined() {
+        return this;
+    }
 }

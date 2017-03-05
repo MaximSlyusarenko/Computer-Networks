@@ -112,9 +112,11 @@ public abstract class Node {
             socket.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
             while (true) {
                 Message message = receiveMessage(socket);
+
                 if (Objects.equals(message.getName(), name)) {
                     continue;
                 }
+
                 processMessage(message);
             }
         } catch (IOException e) {
@@ -144,11 +146,11 @@ public abstract class Node {
         } else if (TYPE_EXECUTOR.equals(type)) {
             executors.put(name, new NodeInfo());
         } else {
-            throw new IllegalArgumentException("Incorrect type: type must be " + TYPE_PRODUCER + " or " + TYPE_CONSUMER);
+            throw new IllegalArgumentException("Incorrect type: type must be " + TYPE_PRODUCER + ", " + TYPE_CONSUMER + " or " + TYPE_EXECUTOR);
         }
     }
 
     public String info() {
-        return "producers: " + producers.toString() + "\nconsumers:" + consumers.toString() + "\n";
+        return "producers: " + producers.toString() + "\nconsumers:" + consumers.toString() + "\nexecutors:" + executors.toString() + "\n";
     }
 }

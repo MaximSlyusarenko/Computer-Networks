@@ -96,4 +96,52 @@ public abstract class Message {
     public InfoMessage asInfoMessage() {
         return null;
     }
+
+    public boolean isHaveWork() {
+        return false;
+    }
+
+    public HaveWork asHaveWork() {
+        return null;
+    }
+
+    public boolean isPrepare() {
+        return false;
+    }
+
+    public Prepare asPrepare() {
+        return null;
+    }
+
+    public boolean isReady() {
+        return false;
+    }
+
+    public Ready asReady() {
+        return null;
+    }
+
+    public boolean isWork() {
+        return false;
+    }
+
+    public Work asWork() {
+        return null;
+    }
+
+    public boolean isWorkDeclined() {
+        return false;
+    }
+
+    public WorkDeclined asWorkDeclined() {
+        return null;
+    }
+
+    public boolean isWorkResult() {
+        return false;
+    }
+
+    public WorkResult asWorkResult() {
+        return null;
+    }
 }

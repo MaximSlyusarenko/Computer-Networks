@@ -40,4 +40,14 @@ public class Ready extends Message {
     public String getName() {
         return name;
     }
+
+    @Override
+    public boolean isReady() {
+        return true;
+    }
+
+    @Override
+    public Ready asReady() {
+        return this;
+    }
 }

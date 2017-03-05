@@ -3,15 +3,33 @@ package ru.ifmo.ctddev.computer.networks;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import ru.ifmo.ctddev.computer.networks.io.FastScanner;
-import ru.ifmo.ctddev.computer.networks.messages.*;
-import ru.ifmo.ctddev.computer.networks.messages.work.*;
+import ru.ifmo.ctddev.computer.networks.messages.Acknowledgement;
+import ru.ifmo.ctddev.computer.networks.messages.ConsumerRequest;
+import ru.ifmo.ctddev.computer.networks.messages.Find;
+import ru.ifmo.ctddev.computer.networks.messages.Message;
+import ru.ifmo.ctddev.computer.networks.messages.ResolveResponse;
+import ru.ifmo.ctddev.computer.networks.messages.work.HaveWork;
+import ru.ifmo.ctddev.computer.networks.messages.work.Ready;
+import ru.ifmo.ctddev.computer.networks.messages.work.Work;
+import ru.ifmo.ctddev.computer.networks.messages.work.WorkDeclined;
+import ru.ifmo.ctddev.computer.networks.messages.work.WorkResult;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Maxim Slyusarenko
@@ -86,8 +104,8 @@ public class Consumer extends Node {
         } else if (message.isResolveResponse()) {
             ResolveResponse resolveResponse = message.asResolveResponse();
             addToSomeMap(resolveResponse.getName(), resolveResponse.getIp());
-        } else if (message instanceof Ready) {
-            Ready ready = (Ready) message;
+        } else if (message.isReady()) {
+            Ready ready = message.asReady();
             executorsForWork.compute(ready.getWorkId(), (key, prevValue) -> {
                 if (prevValue == null) {
                     prevValue = 0;
@@ -110,8 +128,8 @@ public class Consumer extends Node {
                 }
 
             });
-        } else if (message instanceof WorkResult) {
-            WorkResult result = (WorkResult) message;
+        } else if (message.isWorkResult()) {
+            WorkResult result = message.asWorkResult();
             worksInProgress.compute(result.getWorkId(), (key, prevValue) -> {
                 prevValue.add(result.getName());
                 return prevValue;
@@ -119,7 +137,7 @@ public class Consumer extends Node {
             if (worksInProgress.get(result.getWorkId()).size() == WORK_PARTS) {
                 worksInProgress.remove(result.getWorkId());
             }
-            System.out.println("Get work result for work " + result.getWorkId() + " from " + result.getName() + ", result = " + result.getResult());
+            System.out.printf(Locale.ENGLISH, "Get work result for work \"%s\" from \"%s\", result is \"%s\"\n", result.getWorkId(), result.getName(), result.getResult());
         }
     }
 
@@ -145,13 +163,13 @@ public class Consumer extends Node {
              DataOutputStream socketOutputStream = new DataOutputStream(socket.getOutputStream())) {
 
             socket.setSendBufferSize(BUFFER_SIZE);
-            System.out.printf(Locale.ENGLISH, "Sending work \"%s\" from \"%s\" to \"%s\"", workName, selfIP, address);
-            String message = String.format(Locale.ENGLISH, "Receiving work \"%s\" from \"%s\" with address \"%s\"", workName, name, selfIP);
+            System.out.printf(Locale.ENGLISH, "Sending work \"%s\" from \"%s\" to \"%s\"\n", workName, selfIP, address);
+            String message = String.format(Locale.ENGLISH, "Receiving work \"%s\" from \"%s\" with address \"%s\"\n", workName, name, selfIP);
             socketOutputStream.writeUTF(message);
             socketOutputStream.writeUTF(workName);
             socketOutputStream.write(new Work(name, workName, selfIP, workInfo.getSleepSeconds(), workInfo.getResult()).encode().getBytes());
 
-            System.out.printf(Locale.ENGLISH, "Work \"%s\" sent", workName);
+            System.out.printf(Locale.ENGLISH, "Work \"%s\" sent\n", workName);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -224,7 +242,8 @@ public class Consumer extends Node {
     }
 
     public static void main(String[] args) {
-        Consumer consumer = new Consumer("Consumer");
+        String name = args.length == 0 ? "Consumer" : args[0];
+        Consumer consumer = new Consumer(name);
         consumer.initSend();
         consumer.initReceive();
 
@@ -233,8 +252,8 @@ public class Consumer extends Node {
             System.out.print("> ");
             switch (scanner.next().toLowerCase()) {
                 case "get":
-                    String name = scanner.next();
-                    consumer.getFile(name);
+                    String fileName = scanner.next();
+                    consumer.getFile(fileName);
                     break;
                 case "work":
                     int sleep = Integer.parseInt(scanner.next());
@@ -255,6 +274,8 @@ public class Consumer extends Node {
                     return;
                 case "help":
                     System.out.println("Print \"get <file name>\" to get file from producers");
+                    System.out.println("Print \"work\" <seconds to sleep> <result> to send work and get result");
+                    System.out.println("Print \"i\" to get info about consumers and producers");
                     System.out.println("Print \"exit\" or \"q\" to stop this consumer");
                     break;
 

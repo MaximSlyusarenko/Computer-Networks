@@ -52,4 +52,14 @@ public class Work extends Message {
     public String getName() {
         return name;
     }
+
+    @Override
+    public boolean isWork() {
+        return true;
+    }
+
+    @Override
+    public Work asWork() {
+        return this;
+    }
 }

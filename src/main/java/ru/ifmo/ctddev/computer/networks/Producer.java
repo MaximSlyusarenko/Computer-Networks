@@ -86,7 +86,8 @@ public class Producer extends Node {
     }
 
     public static void main(String[] args) {
-        Producer producer = new Producer("Alex");
+        String name = args.length == 0 ? "Producer" : args[0];
+        Producer producer = new Producer(name);
         producer.initSend();
         producer.initReceive();
         new ScheduledThreadPoolExecutor(1).scheduleWithFixedDelay(producer::initListFiles, 0, 10, TimeUnit.SECONDS);

@@ -39,4 +39,14 @@ public class WorkResult extends Message {
     public String getName() {
         return name;
     }
+
+    @Override
+    public boolean isWorkResult() {
+        return true;
+    }
+
+    @Override
+    public WorkResult asWorkResult() {
+        return this;
+    }
 }
