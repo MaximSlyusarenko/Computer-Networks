@@ -2,12 +2,7 @@ package ru.ifmo.ctddev.computer.networks;
 
 import ru.ifmo.ctddev.computer.networks.containers.NodeInfo;
 import ru.ifmo.ctddev.computer.networks.messages.Acknowledgement;
-import ru.ifmo.ctddev.computer.networks.messages.ConsumerRequest;
-import ru.ifmo.ctddev.computer.networks.messages.Find;
 import ru.ifmo.ctddev.computer.networks.messages.Message;
-import ru.ifmo.ctddev.computer.networks.messages.Resolve;
-import ru.ifmo.ctddev.computer.networks.messages.ResolveResponse;
-import ru.ifmo.ctddev.computer.networks.messages.work.Ready;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -76,13 +71,19 @@ public abstract class Node {
         DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
         socket.receive(receivePacket);
         String packet = new String(receiveData, Charset.forName("UTF-8")).substring(0, receivePacket.getLength());
+        Message message = Message.decode(packet);
+
+        if (Objects.equals(name, message.getName())) {
+            return message;
+        }
+
         System.out.println("Got packet: " + packet);
 
         if (TYPE_CONSUMER.equals(getType())) {
             System.out.print("> ");
         }
 
-        return Message.decode(packet);
+        return message;
     }
 
     void receiveUnicast() {
