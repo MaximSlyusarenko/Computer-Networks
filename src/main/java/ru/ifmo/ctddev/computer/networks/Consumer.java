@@ -164,7 +164,7 @@ public class Consumer extends Node {
 
             socket.setSendBufferSize(BUFFER_SIZE);
             System.out.printf(Locale.ENGLISH, "Sending work \"%s\" from \"%s\" to \"%s\"\n", workName, selfIP, address);
-            String message = String.format(Locale.ENGLISH, "Receiving work \"%s\" from \"%s\" with address \"%s\"\n", workName, name, selfIP);
+            String message = String.format(Locale.ENGLISH, "Receiving work \"%s\" from \"%s\" with address \"%s\"", workName, name, selfIP);
             socketOutputStream.writeUTF(message);
             socketOutputStream.writeUTF(workName);
             socketOutputStream.write(new Work(name, workName, selfIP, workInfo.getSleepSeconds(), workInfo.getResult()).encode().getBytes());
