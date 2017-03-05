@@ -145,7 +145,7 @@ public class Executor extends Node {
 
     private void initSend() {
         executorService.submit(() -> {
-            Find find = new Find(Node.TYPE_PRODUCER, name, selfIP);
+            Find find = new Find(Node.TYPE_EXECUTOR, name, selfIP);
             send(find, MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
         });
     }
