@@ -182,7 +182,7 @@ public class Consumer extends Node {
                         .orElse(false);
 
                 worksInProgress.remove(result.getWorkId());
-                worksInProgress.remove(result.getWorkId());
+                workResults.remove(result.getWorkId());
                 System.out.printf(Locale.ENGLISH, "Number is %s\n> ", finalResult ? "prime" : "not prime");
             }
         }
