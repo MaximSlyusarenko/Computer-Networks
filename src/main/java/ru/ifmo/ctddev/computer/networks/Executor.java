@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Executor extends Node {
-    private static final int WORK_THREADS = 2;
+    private static final int WORK_THREADS = 5;
     private static final int LOAD_TIME_IF_NOT_WORK = 10000;
 
     private ServerSocket serverSocket;
