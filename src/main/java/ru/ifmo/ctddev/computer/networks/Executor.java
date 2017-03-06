@@ -121,9 +121,11 @@ public class Executor extends Node {
                         System.out.printf(Locale.ENGLISH, "Before work %s\n", currentWork);
                         Work work = new Work(currentWork);
                         System.out.printf(Locale.ENGLISH, "Work \"%s\" started\n", work.getWorkId());
+                        long resultTime = System.currentTimeMillis();
                         boolean result = doWork(work.getNumber(), work.getStart(), work.getFinish());
+                        resultTime = System.currentTimeMillis() - resultTime;
                         System.out.printf(Locale.ENGLISH, "Work \"%s\" was successfully executed!\n", work.getWorkId());
-                        send(new WorkResult(name, work.getWorkId(), result), work.getIp().getHostName(), RECEIVE_UNICAST_PORT);
+                        send(new WorkResult(name, work.getWorkId(), result, resultTime), work.getIp().getHostName(), RECEIVE_UNICAST_PORT);
                     });
                 } finally {
                     if (workSocket != null) {

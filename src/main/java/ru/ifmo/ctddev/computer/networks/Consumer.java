@@ -58,6 +58,8 @@ public class Consumer extends Node {
 
     private Map<String, List<Boolean>> workResults = new ConcurrentHashMap<>();
 
+    private Map<String, List<Long>> workTimeResults = new ConcurrentHashMap<>();
+
     private ServerSocket serverSocket;
 
     Consumer(String name) {
@@ -131,6 +133,7 @@ public class Consumer extends Node {
         String workId = UUID.randomUUID().toString();
         worksInProgress.put(workId, new ArrayList<>());
         workResults.put(workId, new ArrayList<>());
+        workTimeResults.put(workId, new ArrayList<>());
         executorsForWork.put(workId, 0);
         sendHaveWork(workId, number);
     }
@@ -168,6 +171,10 @@ public class Consumer extends Node {
                 prevValue.add(result.getResult());
                 return prevValue;
             });
+            workTimeResults.compute(result.getWorkId(), (key, prevValue) -> {
+                prevValue.add(result.getSumTime());
+                return prevValue;
+            });
             worksInProgress.compute(result.getWorkId(), (key, prevValue) -> {
                 prevValue.add(result.getName());
                 return prevValue;
@@ -181,9 +188,16 @@ public class Consumer extends Node {
                         .reduce((b1, b2) -> b1 && b2)
                         .orElse(false);
 
+                long finalResultTime = workTimeResults.get(result.getWorkId())
+                        .stream()
+                        .reduce((a1, a2) -> a1 + a2)
+                        .orElse(0L);
+
                 worksInProgress.remove(result.getWorkId());
                 workResults.remove(result.getWorkId());
+                workTimeResults.remove(result.getWorkId());
                 System.out.printf(Locale.ENGLISH, "Number is %s\n> ", finalResult ? "prime" : "not prime");
+                System.out.println("Working time is " + finalResultTime + " ms");
             }
         }
     }

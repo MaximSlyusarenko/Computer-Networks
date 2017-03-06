@@ -20,6 +20,7 @@ public class WorkResult extends Message {
     private String name;
     private String workId;
     private Boolean result;
+    private Long sumTime;
 
     public WorkResult(String json) {
         _decode(json);
@@ -36,6 +37,7 @@ public class WorkResult extends Message {
         this.name = workResult.name;
         this.workId = workResult.workId;
         this.result = workResult.result;
+        this.sumTime = workResult.sumTime;
     }
 
     @Override

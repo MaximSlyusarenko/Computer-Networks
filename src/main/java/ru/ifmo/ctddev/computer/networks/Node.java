@@ -25,7 +25,7 @@ public abstract class Node {
     static final int RECEIVE_MULTICAST_PORT = 8080;
     static final int RECEIVE_UNICAST_PORT = 8081;
     static final int RECEIVE_FILE_PORT = 8082;
-    static final int RECEIVE_WORK_PORT = 8083;
+    static final int RECEIVE_WORK_PORT = 8085;
     static final int BUFFER_SIZE = 2048;
     static final String TYPE_CONSUMER = "consumer";
     static final String TYPE_PRODUCER = "producer";
