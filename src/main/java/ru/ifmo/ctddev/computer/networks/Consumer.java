@@ -39,8 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Consumer extends Node {
 
     private static final int WORK_PARTS = 2;
-    private static final int ONE_NODE_EXECUTE_DELAY = 30000;
-    private static final int ALL_NODES_EXECUTE_DELAY = 60000;
+    private static final int ALL_NODES_EXECUTE_DELAY = 20000;
 
     private Thread multiReciever;
     private Thread uniReciever;
@@ -115,10 +114,7 @@ public class Consumer extends Node {
 
     private void sendHaveWork(String workId, BigInteger number) {
         workIdToWork.put(workId, new WorkInfo(number));
-        executorsForWork.put(workId, 0);
         send(new HaveWork(name, workId, selfIP), MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
-        worksInProgress.put(workId, new ArrayList<>());
-        workResults.put(workId, new ArrayList<>());
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -132,12 +128,10 @@ public class Consumer extends Node {
 
     private void sendHaveWork(BigInteger number) {
         String workId = UUID.randomUUID().toString();
+        worksInProgress.put(workId, new ArrayList<>());
+        workResults.put(workId, new ArrayList<>());
+        executorsForWork.put(workId, 0);
         sendHaveWork(workId, number);
-    }
-
-    @Override
-    protected String getType() {
-        return Node.TYPE_CONSUMER;
     }
 
     @Override
@@ -164,15 +158,6 @@ public class Consumer extends Node {
                     return prevValue;
                 } else {
                     sendWork(ready.getIp().getHostName(), ready.getWorkId(), workIdToWork.get(ready.getWorkId()), prevValue);
-                    new Timer().schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            if (worksInProgress.containsKey(ready.getWorkId())) {
-                                WorkInfo workInfo = workIdToWork.get(ready.getWorkId());
-                                sendHaveWork(ready.getWorkId(), workInfo.getNumber());
-                            }
-                        }
-                    }, ONE_NODE_EXECUTE_DELAY);
                     return prevValue + 1;
                 }
             });
@@ -197,9 +182,14 @@ public class Consumer extends Node {
 
                 worksInProgress.remove(result.getWorkId());
                 worksInProgress.remove(result.getWorkId());
-                System.out.printf(Locale.ENGLISH, "Number is %s\n", finalResult ? "prime" : "not prime");
+                System.out.printf(Locale.ENGLISH, "Number is %s\n> ", finalResult ? "prime" : "not prime");
             }
         }
+    }
+
+    @Override
+    protected String getType() {
+        return Node.TYPE_CONSUMER;
     }
 
     @Override
@@ -212,23 +202,6 @@ public class Consumer extends Node {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private void initSend() {
-        sender = new Thread(() -> {
-            Find find = new Find(Node.TYPE_CONSUMER, name, selfIP);
-            send(find, MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
-        });
-        sender.start();
-    }
-
-    private void initReceive() {
-        multiReciever = new Thread(this::receiveMulticast);
-        uniReciever = new Thread(this::receiveUnicast);
-        fileReceiver = new Thread(this::receiveFileConnection);
-        multiReciever.start();
-        uniReciever.start();
-        fileReceiver.start();
     }
 
     private void sendWork(String address, String workName, WorkInfo workInfo, int part) {
@@ -254,6 +227,23 @@ public class Consumer extends Node {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void initSend() {
+        sender = new Thread(() -> {
+            Find find = new Find(Node.TYPE_CONSUMER, name, selfIP);
+            send(find, MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
+        });
+        sender.start();
+    }
+
+    private void initReceive() {
+        multiReciever = new Thread(this::receiveMulticast);
+        uniReciever = new Thread(this::receiveUnicast);
+        fileReceiver = new Thread(this::receiveFileConnection);
+        multiReciever.start();
+        uniReciever.start();
+        fileReceiver.start();
     }
 
     private void receiveFileConnection() {
