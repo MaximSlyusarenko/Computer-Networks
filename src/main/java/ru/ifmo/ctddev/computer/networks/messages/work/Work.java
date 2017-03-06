@@ -2,10 +2,10 @@ package ru.ifmo.ctddev.computer.networks.messages.work;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.ifmo.ctddev.computer.networks.messages.Message;
 
+import java.math.BigInteger;
 import java.net.InetAddress;
 
 /**
@@ -20,8 +20,9 @@ public class Work extends Message {
     private String name;
     private String workId;
     private InetAddress ip;
-    private int sleep;
-    private String result;
+    private BigInteger number;
+    private BigInteger start;
+    private BigInteger finish;
 
     public Work(String json) {
         _decode(json);
@@ -33,19 +34,14 @@ public class Work extends Message {
     }
 
     @Override
-    public String encode() {
-        String res = super.encode();
-        return res + "#";
-    }
-
-    @Override
     public void _decode(String s) {
         Work work = gson.fromJson(s, Work.class);
         this.name = work.name;
         this.workId = work.workId;
         this.ip = work.ip;
-        this.sleep = work.sleep;
-        this.result = work.result;
+        this.number = work.number;
+        this.start = work.start;
+        this.finish = work.finish;
     }
 
     @Override

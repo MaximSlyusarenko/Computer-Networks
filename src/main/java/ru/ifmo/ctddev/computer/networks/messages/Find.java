@@ -1,6 +1,5 @@
 package ru.ifmo.ctddev.computer.networks.messages;
 
-import com.google.gson.JsonObject;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

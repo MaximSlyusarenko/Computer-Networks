@@ -1,6 +1,11 @@
 package ru.ifmo.ctddev.computer.networks;
 
-import ru.ifmo.ctddev.computer.networks.messages.*;
+import ru.ifmo.ctddev.computer.networks.messages.Acknowledgement;
+import ru.ifmo.ctddev.computer.networks.messages.ConsumerRequest;
+import ru.ifmo.ctddev.computer.networks.messages.Find;
+import ru.ifmo.ctddev.computer.networks.messages.InfoMessage;
+import ru.ifmo.ctddev.computer.networks.messages.Message;
+import ru.ifmo.ctddev.computer.networks.messages.ResolveResponse;
 
 import java.io.BufferedInputStream;
 import java.io.DataOutputStream;
@@ -12,7 +17,6 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -28,17 +32,28 @@ public class Producer extends Node {
         super(name);
     }
 
-
-    protected void getFile(String fileName) {
-        throw new UnsupportedOperationException("Consumer operation for Producer");
+    public static void main(String[] args) {
+        String name = args.length == 0 ? "Producer" : args[0];
+        Producer producer = new Producer(name);
+        producer.initSend();
+        producer.initReceive();
+        new ScheduledThreadPoolExecutor(1).scheduleWithFixedDelay(producer::initListFiles, 0, 10, TimeUnit.SECONDS);
     }
 
-    @Override
+    private void initSend() {
+        new Thread(() -> {
+            Find find = new Find(Node.TYPE_PRODUCER, name, selfIP);
+            send(find, MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
+        }).start();
+    }    @Override
     protected String getType() {
         return Node.TYPE_PRODUCER;
     }
 
-    @Override
+    private void initReceive() {
+        new Thread(this::receiveMulticast).start();
+        new Thread(this::receiveUnicast).start();
+    }    @Override
     protected void processMessage(Message message) {
         if (message.isFind()) {
             Find find = message.asFind();
@@ -56,11 +71,8 @@ public class Producer extends Node {
         }
     }
 
-    private void initSend() {
-        new Thread(() -> {
-            Find find = new Find(Node.TYPE_PRODUCER, name, selfIP);
-            send(find, MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
-        }).start();
+    protected void getFile(String fileName) {
+        throw new UnsupportedOperationException("Consumer operation for Producer");
     }
 
     private void initListFiles() {
@@ -80,18 +92,9 @@ public class Producer extends Node {
         send(infoMessage, MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
     }
 
-    private void initReceive() {
-        new Thread(this::receiveMulticast).start();
-        new Thread(this::receiveUnicast).start();
-    }
 
-    public static void main(String[] args) {
-        String name = args.length == 0 ? "Producer" : args[0];
-        Producer producer = new Producer(name);
-        producer.initSend();
-        producer.initReceive();
-        new ScheduledThreadPoolExecutor(1).scheduleWithFixedDelay(producer::initListFiles, 0, 10, TimeUnit.SECONDS);
-    }
+
+
 
     @Override
     protected void findFileAndSend(String fileName, String address) {

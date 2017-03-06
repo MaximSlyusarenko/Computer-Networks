@@ -58,13 +58,32 @@ public abstract class Node {
         }
     }
 
-    protected abstract String getType();
-
-    protected abstract void processMessage(Message message);
-
     protected void findFileAndSend(String fileName, String address) {
         throw new UnsupportedOperationException("Consumer can't perform file send operation");
     }
+
+    void receiveUnicast() {
+        try {
+            uSocket = new DatagramSocket(RECEIVE_UNICAST_PORT);
+            while (true) {
+                Message message = receiveMessage(uSocket);
+                if (message.isAcknowledgement()) {
+                    Acknowledgement ack = message.asAcknowledgement();
+                    addToSomeMap(ack.getType(), ack.getName());
+                } else {
+                    processMessage(message);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (uSocket != null) {
+                uSocket.close();
+            }
+        }
+    }
+
+    protected abstract void processMessage(Message message);
 
     private Message receiveMessage(DatagramSocket socket) throws IOException {
         byte[] receiveData = new byte[BUFFER_SIZE];
@@ -86,24 +105,17 @@ public abstract class Node {
         return message;
     }
 
-    void receiveUnicast() {
-        try {
-            uSocket = new DatagramSocket(RECEIVE_UNICAST_PORT);
-            while (true) {
-                Message message = receiveMessage(uSocket);
-                if (message.isAcknowledgement()) {
-                    Acknowledgement ack = message.asAcknowledgement();
-                    addToSomeMap(ack.getType(), ack.getName());
-                } else {
-                    processMessage(message);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (uSocket != null) {
-                uSocket.close();
-            }
+    protected abstract String getType();
+
+    protected void addToSomeMap(String type, String name) {
+        if (TYPE_PRODUCER.equals(type)) {
+            producers.put(name, new NodeInfo());
+        } else if (TYPE_CONSUMER.equals(type)) {
+            consumers.put(name, new NodeInfo());
+        } else if (TYPE_EXECUTOR.equals(type)) {
+            executors.put(name, new NodeInfo());
+        } else {
+            throw new IllegalArgumentException("Incorrect type: type must be " + TYPE_PRODUCER + ", " + TYPE_CONSUMER + " or " + TYPE_EXECUTOR);
         }
     }
 
@@ -137,18 +149,6 @@ public abstract class Node {
     protected void addToSomeMap(String name, InetAddress ip) {
         producers.computeIfPresent(name, ($, $$) -> new NodeInfo(ip, 0, TimeUnit.SECONDS)); // TODO: add normal ttl
         consumers.computeIfPresent(name, ($, $$) -> new NodeInfo(ip, 0, TimeUnit.SECONDS)); // TODO: add normal ttl
-    }
-
-    protected void addToSomeMap(String type, String name) {
-        if (TYPE_PRODUCER.equals(type)) {
-            producers.put(name, new NodeInfo());
-        } else if (TYPE_CONSUMER.equals(type)) {
-            consumers.put(name, new NodeInfo());
-        } else if (TYPE_EXECUTOR.equals(type)) {
-            executors.put(name, new NodeInfo());
-        } else {
-            throw new IllegalArgumentException("Incorrect type: type must be " + TYPE_PRODUCER + ", " + TYPE_CONSUMER + " or " + TYPE_EXECUTOR);
-        }
     }
 
     public String info() {

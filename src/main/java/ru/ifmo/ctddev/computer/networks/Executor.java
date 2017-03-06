@@ -1,39 +1,60 @@
 package ru.ifmo.ctddev.computer.networks;
 
-import ru.ifmo.ctddev.computer.networks.messages.*;
-import ru.ifmo.ctddev.computer.networks.messages.work.*;
+import ru.ifmo.ctddev.computer.networks.messages.Acknowledgement;
+import ru.ifmo.ctddev.computer.networks.messages.Find;
+import ru.ifmo.ctddev.computer.networks.messages.Message;
+import ru.ifmo.ctddev.computer.networks.messages.work.HaveWork;
+import ru.ifmo.ctddev.computer.networks.messages.work.Ready;
+import ru.ifmo.ctddev.computer.networks.messages.work.Work;
+import ru.ifmo.ctddev.computer.networks.messages.work.WorkDeclined;
+import ru.ifmo.ctddev.computer.networks.messages.work.WorkResult;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Executor extends Node {
-    private static final int WORK_THREADS = 10;
+    private static final int WORK_THREADS = 1;
     private static final int LOAD_TIME_IF_NOT_WORK = 10000;
 
     private ServerSocket serverSocket;
 
     private Set<String> worksWeAreReadyFor = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    private Map<String, String> workNameToCurrentWork = new ConcurrentHashMap<>();
-
     private ExecutorService executorService = Executors.newFixedThreadPool(WORK_THREADS + 3); //3 for receive
+    private AtomicInteger load = new AtomicInteger(0); // count load manually
 
     Executor(String name) {
         super(name);
     }
 
-    private AtomicInteger load = new AtomicInteger(0); // count load manually
-
-    @Override
+    public static void main(String[] args) {
+        String name = args.length == 0 ? "Executor" : args[0];
+        Executor executor = new Executor(name);
+        executor.initSend();
+        executor.initReceive();
+    }    @Override
     protected String getType() {
         return Node.TYPE_EXECUTOR;
     }
 
-    @Override
+    private void initSend() {
+        executorService.submit(() -> {
+            Find find = new Find(Node.TYPE_EXECUTOR, name, selfIP);
+            send(find, MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
+        });
+    }    @Override
     protected void processMessage(Message message) {
         if (message.isFind()) {
             Find find = message.asFind();
@@ -43,7 +64,6 @@ public class Executor extends Node {
         } else if (message.isHaveWork()) {
             HaveWork haveWork = message.asHaveWork();
             worksWeAreReadyFor.remove(haveWork.getWorkId());
-            workNameToCurrentWork.put(haveWork.getWorkId(), "");
             int prevLoad = load.getAndUpdate(operand -> {
                 if (operand < WORK_THREADS) {
                     send(new Ready(name, haveWork.getWorkId(), selfIP), haveWork.getIp().getHostName(), RECEIVE_UNICAST_PORT);
@@ -66,9 +86,14 @@ public class Executor extends Node {
         } else if (message.isWorkDeclined()) {
             WorkDeclined workDeclined = message.asWorkDeclined();
             worksWeAreReadyFor.remove(workDeclined.getWorkId());
-            workNameToCurrentWork.put(workDeclined.getWorkId(), "");
             load.decrementAndGet();
         }
+    }
+
+    private void initReceive() {
+        executorService.submit(this::receiveMulticast);
+        executorService.submit(this::receiveUnicast);
+        executorService.submit(this::receiveWork);
     }
 
     private void receiveWork() {
@@ -84,42 +109,18 @@ public class Executor extends Node {
                     socketInputStream = new DataInputStream(workSocket.getInputStream());
                     System.out.println(socketInputStream.readUTF());
                     String workName = socketInputStream.readUTF();
-                    byte[] buffer = new byte[BUFFER_SIZE];
-                    int bytesReadNow;
-
-                    do {
-                        bytesReadNow = socketInputStream.read(buffer, 0, BUFFER_SIZE);
-
-                        if (bytesReadNow > 0) {
-                            int length = bytesReadNow; // For lambda
-                            workNameToCurrentWork.compute(workName, (key, value) -> {
-                                String currentWork;
-                                if (value == null) {
-                                    currentWork = new String(buffer, 0, length);
-                                } else {
-                                    currentWork = value + new String(buffer, 0, length);
-                                }
-                                System.out.printf(Locale.ENGLISH, "Current work is %s\n", currentWork);
-                                if (currentWork.endsWith("#")) {
-                                    executorService.submit(() -> {
-                                        worksWeAreReadyFor.remove(currentWork.substring(0, currentWork.length() - 1));
-                                        System.out.printf(Locale.ENGLISH, "Before %s\n", currentWork.substring(0, currentWork.length() - 1));
-                                        Work work = new Work(currentWork.substring(0, currentWork.length() - 1));
-                                        System.out.printf(Locale.ENGLISH, "Work \"%s\" started\n", work.getWorkId());
-                                        try {
-                                            Thread.sleep(work.getSleep() * 1000);
-                                        } catch (InterruptedException ignored) {
-                                        }
-                                        System.out.printf(Locale.ENGLISH, "Work \"%s\" was successfully executed!\n", work.getWorkId());
-                                        send(new WorkResult(name, work.getWorkId(), work.getResult()), work.getIp().getHostName(), RECEIVE_UNICAST_PORT);
-                                    });
-                                }
-                                return currentWork;
-                            });
-                        }
-                    } while (bytesReadNow > -1);
-
                     System.out.printf(Locale.ENGLISH, "Received work \"%s\"\n> ", workName);
+                    String currentWork = socketInputStream.readUTF();
+
+                    executorService.submit(() -> {
+                        worksWeAreReadyFor.remove(currentWork);
+                        System.out.printf(Locale.ENGLISH, "Before work %s\n", currentWork);
+                        Work work = new Work(currentWork);
+                        System.out.printf(Locale.ENGLISH, "Work \"%s\" started\n", work.getWorkId());
+                        boolean result = doWork(work.getNumber(), work.getStart(), work.getFinish());
+                        System.out.printf(Locale.ENGLISH, "Work \"%s\" was successfully executed!\n", work.getWorkId());
+                        send(new WorkResult(name, work.getWorkId(), result), work.getIp().getHostName(), RECEIVE_UNICAST_PORT);
+                    });
                 } finally {
                     if (workSocket != null) {
                         workSocket.close();
@@ -142,25 +143,21 @@ public class Executor extends Node {
         }
     }
 
+    private boolean doWork(BigInteger number, BigInteger start, BigInteger finish) {
+        start = start.add(BigInteger.ONE);
 
-    private void initSend() {
-        executorService.submit(() -> {
-            Find find = new Find(Node.TYPE_EXECUTOR, name, selfIP);
-            send(find, MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
-        });
+        while (!start.equals(finish)) {
+            if (number.divideAndRemainder(start)[1].equals(BigInteger.ZERO)) {
+                return false;
+            }
+
+            start = start.add(BigInteger.ONE);
+        }
+
+        return true;
     }
 
-    private void initReceive() {
-        executorService.submit(this::receiveMulticast);
-        executorService.submit(this::receiveUnicast);
-        executorService.submit(this::receiveWork);
-    }
 
-    public static void main(String[] args) {
-        String name = args.length == 0 ? "Executor" : args[0];
-        Executor executor = new Executor(name);
-        executor.initSend();
-        executor.initReceive();
-    }
+
 
 }

@@ -1,6 +1,5 @@
 package ru.ifmo.ctddev.computer.networks.messages.work;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import ru.ifmo.ctddev.computer.networks.messages.Message;

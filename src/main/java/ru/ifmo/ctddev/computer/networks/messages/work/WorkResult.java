@@ -16,7 +16,7 @@ public class WorkResult extends Message {
     public static final String HEADER = "WorkResult";
     private String name;
     private String workId;
-    private String result;
+    private Boolean result;
 
     public WorkResult(String json) {
         _decode(json);

@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import ru.ifmo.ctddev.computer.networks.messages.Message;
 
-import java.net.InetAddress;
-
 /**
  * @author Maxim Slyusarenko
  * @since 04.03.17

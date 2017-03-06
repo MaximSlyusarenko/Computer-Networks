@@ -1,9 +1,18 @@
 package ru.ifmo.ctddev.computer.networks.messages;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.Getter;
 import lombok.Setter;
-import ru.ifmo.ctddev.computer.networks.messages.work.*;
+import ru.ifmo.ctddev.computer.networks.messages.work.HaveWork;
+import ru.ifmo.ctddev.computer.networks.messages.work.Prepare;
+import ru.ifmo.ctddev.computer.networks.messages.work.Ready;
+import ru.ifmo.ctddev.computer.networks.messages.work.Work;
+import ru.ifmo.ctddev.computer.networks.messages.work.WorkDeclined;
+import ru.ifmo.ctddev.computer.networks.messages.work.WorkResult;
 
 /**
  * Created by vi34 on 25/02/2017.
@@ -12,17 +21,6 @@ import ru.ifmo.ctddev.computer.networks.messages.work.*;
 @Setter
 public abstract class Message {
     protected static Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-
-    public String encode() {
-        JsonObject jsonObject = gson.toJsonTree(this).getAsJsonObject();
-        jsonObject.addProperty("header", getHeader());
-        return jsonObject.toString();
-    }
-
-    public abstract String getHeader();
-    public abstract void _decode(String s);
-    public abstract String getName();
 
     public static Message decode(String json) {
         JsonParser parser = new JsonParser();
@@ -33,21 +31,45 @@ public abstract class Message {
 
     private static Message build(String header, String json) {
         switch (header) {
-            case Find.HEADER: return new Find(json);
-            case Acknowledgement.HEADER: return new Acknowledgement(json);
-            case Resolve.HEADER: return new Resolve(json);
-            case ResolveResponse.HEADER: return new ResolveResponse(json);
-            case ConsumerRequest.HEADER: return new ConsumerRequest(json);
-            case InfoMessage.HEADER: return new InfoMessage(json);
-            case HaveWork.HEADER: return new HaveWork(json);
-            case Prepare.HEADER: return new Prepare(json);
-            case Ready.HEADER: return new Ready(json);
-            case Work.HEADER: return new Work(json);
-            case WorkDeclined.HEADER: return new WorkDeclined(json);
-            case WorkResult.HEADER: return new WorkResult(json);
+            case Find.HEADER:
+                return new Find(json);
+            case Acknowledgement.HEADER:
+                return new Acknowledgement(json);
+            case Resolve.HEADER:
+                return new Resolve(json);
+            case ResolveResponse.HEADER:
+                return new ResolveResponse(json);
+            case ConsumerRequest.HEADER:
+                return new ConsumerRequest(json);
+            case InfoMessage.HEADER:
+                return new InfoMessage(json);
+            case HaveWork.HEADER:
+                return new HaveWork(json);
+            case Prepare.HEADER:
+                return new Prepare(json);
+            case Ready.HEADER:
+                return new Ready(json);
+            case Work.HEADER:
+                return new Work(json);
+            case WorkDeclined.HEADER:
+                return new WorkDeclined(json);
+            case WorkResult.HEADER:
+                return new WorkResult(json);
         }
         return null;
     }
+
+    public String encode() {
+        JsonObject jsonObject = gson.toJsonTree(this).getAsJsonObject();
+        jsonObject.addProperty("header", getHeader());
+        return jsonObject.toString();
+    }
+
+    public abstract String getHeader();
+
+    public abstract void _decode(String s);
+
+    public abstract String getName();
 
     public boolean isFind() {
         return false;
