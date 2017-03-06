@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
  * @author Maxim Slyusarenko
  * @since 25.02.17
  */
+
 public class Producer extends Node {
 
     Producer(String name) {
@@ -45,7 +46,9 @@ public class Producer extends Node {
             Find find = new Find(Node.TYPE_PRODUCER, name, selfIP);
             send(find, MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
         }).start();
-    }    @Override
+    }
+
+    @Override
     protected String getType() {
         return Node.TYPE_PRODUCER;
     }
@@ -53,7 +56,9 @@ public class Producer extends Node {
     private void initReceive() {
         new Thread(this::receiveMulticast).start();
         new Thread(this::receiveUnicast).start();
-    }    @Override
+    }
+
+    @Override
     protected void processMessage(Message message) {
         if (message.isFind()) {
             Find find = message.asFind();
@@ -91,10 +96,6 @@ public class Producer extends Node {
 
         send(infoMessage, MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
     }
-
-
-
-
 
     @Override
     protected void findFileAndSend(String fileName, String address) {

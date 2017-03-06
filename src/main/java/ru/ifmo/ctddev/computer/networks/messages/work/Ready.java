@@ -10,11 +10,14 @@ import java.net.InetAddress;
 /**
  * Created by vi34 on 04/03/2017.
  */
+
 @Getter
 @Setter
 @AllArgsConstructor
 public class Ready extends Message {
+
     public static final String HEADER = "READY";
+
     private String name;
     private String workId;
     private InetAddress ip;

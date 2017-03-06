@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by vi34 on 25/02/2017.
  */
+
 public abstract class Node {
     static final String MULTICAST_ADDRESS = "225.4.5.6";
     static final int RECEIVE_MULTICAST_PORT = 8080;

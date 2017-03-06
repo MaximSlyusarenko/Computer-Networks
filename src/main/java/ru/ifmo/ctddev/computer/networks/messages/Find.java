@@ -9,11 +9,14 @@ import java.net.InetAddress;
 /**
  * Created by vi34 on 25/02/2017.
  */
+
 @Getter
 @Setter
 @AllArgsConstructor
 public class Find extends Message {
+
     public static final String HEADER = "FIND";
+
     private String type;
     private String name;
     private InetAddress ip;

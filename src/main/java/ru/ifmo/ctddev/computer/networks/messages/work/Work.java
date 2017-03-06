@@ -12,11 +12,14 @@ import java.net.InetAddress;
  * @author Maxim Slyusarenko
  * @since 04.03.17
  */
+
 @Getter
 @Setter
 @AllArgsConstructor
 public class Work extends Message {
+
     public static final String HEADER = "Work";
+
     private String name;
     private String workId;
     private InetAddress ip;

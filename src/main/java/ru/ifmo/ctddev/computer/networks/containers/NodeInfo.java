@@ -11,10 +11,12 @@ import java.util.concurrent.TimeUnit;
  * @author Maxim Slyusarenko
  * @since 25.02.17
  */
+
 @Getter
 @Setter
 @ToString
 public class NodeInfo {
+
     private InetAddress inetAddress;
 
     /**

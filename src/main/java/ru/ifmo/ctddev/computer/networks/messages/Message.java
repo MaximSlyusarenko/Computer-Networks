@@ -17,9 +17,11 @@ import ru.ifmo.ctddev.computer.networks.messages.work.WorkResult;
 /**
  * Created by vi34 on 25/02/2017.
  */
+
 @Getter
 @Setter
 public abstract class Message {
+
     protected static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public static Message decode(String json) {

@@ -9,11 +9,14 @@ import ru.ifmo.ctddev.computer.networks.messages.Message;
  * @author Maxim Slyusarenko
  * @since 04.03.17
  */
+
 @Getter
 @Setter
 @AllArgsConstructor
 public class WorkResult extends Message {
+
     public static final String HEADER = "WorkResult";
+
     private String name;
     private String workId;
     private Boolean result;

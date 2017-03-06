@@ -15,6 +15,7 @@ import java.net.InetAddress;
 @Setter
 @AllArgsConstructor
 public class ConsumerRequest extends Message {
+
     public static final String HEADER = "ConsumerRequest";
 
     private String name;

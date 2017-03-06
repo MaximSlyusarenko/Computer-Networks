@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Maxim Slyusarenko
  * @since 25.02.17
  */
+
 public class Consumer extends Node {
 
     private static final int WORK_PARTS = 2;

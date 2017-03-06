@@ -10,10 +10,12 @@ import java.net.InetAddress;
  * @author Maxim Slyusarenko
  * @since 25.02.17
  */
+
 @Getter
 @Setter
 @AllArgsConstructor
 public class ResolveResponse extends Message {
+
     public static final String HEADER = "ResolveResponse";
 
     private String name;

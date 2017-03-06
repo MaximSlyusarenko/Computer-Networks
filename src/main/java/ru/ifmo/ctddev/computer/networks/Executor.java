@@ -44,9 +44,6 @@ public class Executor extends Node {
         Executor executor = new Executor(name);
         executor.initSend();
         executor.initReceive();
-    }    @Override
-    protected String getType() {
-        return Node.TYPE_EXECUTOR;
     }
 
     private void initSend() {
@@ -54,7 +51,15 @@ public class Executor extends Node {
             Find find = new Find(Node.TYPE_EXECUTOR, name, selfIP);
             send(find, MULTICAST_ADDRESS, RECEIVE_MULTICAST_PORT);
         });
-    }    @Override
+    }
+
+    private void initReceive() {
+        executorService.submit(this::receiveMulticast);
+        executorService.submit(this::receiveUnicast);
+        executorService.submit(this::receiveWork);
+    }
+
+    @Override
     protected void processMessage(Message message) {
         if (message.isFind()) {
             Find find = message.asFind();
@@ -90,10 +95,9 @@ public class Executor extends Node {
         }
     }
 
-    private void initReceive() {
-        executorService.submit(this::receiveMulticast);
-        executorService.submit(this::receiveUnicast);
-        executorService.submit(this::receiveWork);
+    @Override
+    protected String getType() {
+        return Node.TYPE_EXECUTOR;
     }
 
     private void receiveWork() {
@@ -156,8 +160,4 @@ public class Executor extends Node {
 
         return true;
     }
-
-
-
-
 }

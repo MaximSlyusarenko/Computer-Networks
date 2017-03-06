@@ -16,6 +16,7 @@ import java.net.InetAddress;
 @Setter
 @AllArgsConstructor
 public class InfoMessage extends Message {
+
     public static final String HEADER = "InfoMessage";
 
     private String name;

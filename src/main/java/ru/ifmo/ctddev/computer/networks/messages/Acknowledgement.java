@@ -8,10 +8,12 @@ import lombok.Setter;
  * @author Maxim Slyusarenko
  * @since 25.02.17
  */
+
 @Getter
 @Setter
 @AllArgsConstructor
 public class Acknowledgement extends Message {
+
     public static final String HEADER = "ACK";
 
     private String name;
